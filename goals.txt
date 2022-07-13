@@ -1,0 +1,13 @@
+Project Goals
+
+Smallest Product
+
+Pre-Set Up
+
+ + Get legacy deck (ideally from mox)
+ - Load a legacy deck (props kappa)
+ - Load card images (steal from cockatrace.... for now)
+ - Build card (show image)
+ - Add drag drop
+ - Build generic zone
+ - .... profit?sss
