@@ -1,34 +1,37 @@
-<script setup lang="ts">
+<script lang="tsx">
+import { defineComponent } from 'vue';
 import { TerraCard } from './components';
-import { invoke } from '@tauri-apps/api/tauri';
-import { listen } from '@tauri-apps/api/event';
-import { ref } from '@vue/reactivity';
+import { useCard } from '~/composables/useCard';
+import { findColors } from '~/models/card.model';
 
-const cards = ref([]);
+export default defineComponent({
+  name: 'app',
 
-async function onTest() {
-  cards.value = await invoke('load_deck');
-  console.log(cards.value);
-}
+  setup() {
+    const { getDeck, loadDeck } = useCard();
 
-listen<any>('update-cards__action', event => {
-  console.log('Test');
+    loadDeck('');
+
+    console.log(findColors('{X}{X}{R}{13}{W}{B}'));
+
+    return { deck: getDeck() };
+  },
+
+  render() {
+    return (
+      <div>
+        <div class="class">
+          {this.deck.map(card => (
+            <img class="card" src={card.imagePath} />
+          ))}
+        </div>
+      </div>
+    );
+  },
 });
 </script>
 
-<template>
-  <button @click="onTest">TEST?</button>
-
-  <div class="cards">
-    <template v-for="card in cards" :key="card.name">
-      <img class="card" :src="`https://card.${card.set_code}/${card.meta.scryfall_id}.png`" />
-    </template>
-  </div>
-
-  <terra-card></terra-card>
-</template>
-
-<style>
+<style lang="scss">
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;

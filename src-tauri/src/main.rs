@@ -4,20 +4,14 @@ mod modules;
 
 use std::fs::{canonicalize, read};
 
-use log::info;
+use log::{error, info};
 use modules::{
-    card::{card_service::{CardService, ListCard}, card_types::Card},
+    card::{card_service::CardService, card_types::Card},
     constants::cards_location,
+    download::{download_service::DownloadService, download_types::event_name},
 };
 use simple_logger::SimpleLogger;
 use tauri::{http::ResponseBuilder, Window};
-
-use crate::modules::card::card_types::event_name;
-
-#[derive(Debug)]
-struct CountResult {
-    count: i32,
-}
 
 pub struct DBState {}
 
@@ -28,7 +22,7 @@ fn main() {
     tauri::Builder::default()
         .menu(tauri::Menu::os_default(&context.package_info().name))
         .invoke_handler(tauri::generate_handler![load_deck, update_cards])
-        .register_uri_scheme_protocol("card", move |app, request| {
+        .register_uri_scheme_protocol("card", move |_app, request| {
             let uri = request.uri().replace("card://", "");
             let path = cards_location().join(uri.as_str());
             let content = read(canonicalize(path.to_str().unwrap())?)?;
@@ -50,11 +44,13 @@ async fn update_cards(window: Window) {
         format!("update-cards__{}", name)
     }
 
-    let collection = CardService::download_all_cards();
+    let collection = DownloadService::download_all_cards();
 
     for card in collection.rx {
         if event_name(&card.event).eq("DOWNLOADED") {
-            window.emit(download_event("action").as_str(), card);
+            window
+                .emit(download_event("action").as_str(), card)
+                .unwrap_or_else(|err| error!("error occurred: {}", err));
         }
     }
 

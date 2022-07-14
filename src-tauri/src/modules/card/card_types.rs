@@ -26,25 +26,3 @@ pub struct CardMeta {
     pub scryfall_illustration_id: String,
     pub uuid: String,
 }
-
-#[derive(Debug, Serialize, Clone)]
-pub struct CardDownload {
-    pub event: DownloadEvent,
-    pub card: Card,
-    pub message: String,
-}
-
-#[derive(Debug, Serialize, Clone, PartialEq)]
-pub enum DownloadEvent {
-    SKIPPED,
-    DOWNLOADED,
-    FAILED,
-}
-
-pub fn event_name(event: &DownloadEvent) -> String {
-    match event {
-        DownloadEvent::DOWNLOADED => String::from("DOWNLOADED"),
-        DownloadEvent::FAILED => String::from("FAILED"),
-        DownloadEvent::SKIPPED => String::from("SKIPPED"),
-    }
-}
