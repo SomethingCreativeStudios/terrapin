@@ -2,17 +2,15 @@
 import { defineComponent } from 'vue';
 import { TerraCard } from './components';
 import { useCard } from '~/composables/useCard';
-import { findColors } from '~/models/card.model';
+import { computed } from '@vue/reactivity';
 
 export default defineComponent({
   name: 'app',
-
+  components: { TerraCard },
   setup() {
     const { getDeck, loadDeck } = useCard();
 
     loadDeck('');
-
-    console.log(findColors('{X}{X}{R}{13}{W}{B}'));
 
     return { deck: getDeck() };
   },
@@ -20,9 +18,9 @@ export default defineComponent({
   render() {
     return (
       <div>
-        <div class="class">
+        <div class="cards">
           {this.deck.map(card => (
-            <img class="card" src={card.imagePath} />
+            <terra-card class="card" card={card}></terra-card>
           ))}
         </div>
       </div>
@@ -45,9 +43,5 @@ export default defineComponent({
   width: 100%;
   display: flex;
   flex-wrap: wrap;
-}
-
-.card {
-  width: 150px;
 }
 </style>

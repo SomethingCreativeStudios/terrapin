@@ -4,6 +4,7 @@ extern crate reqwest;
 use crate::modules::card::card_types::{Card, CardMeta};
 use crate::modules::database::db::GLOBAL_CONNECTION;
 
+use log::info;
 use rusqlite::{Error, Row};
 use serde::Serialize;
 use std::collections::HashMap;
@@ -109,7 +110,7 @@ impl CardService {
     }
 
     fn get_card_column() -> String {
-        "id, name, manaCost, manaValue, convertedManaCost, power, types, subtypes, setCode , printings , layout , keywords , flavorText , colorIdentity ,colors ,scryfallId ,scryfallIllustrationId ,uuid".to_string()
+        "id, name, manaCost, manaValue, convertedManaCost, power, toughness, types, subtypes, setCode , printings , layout , keywords , flavorText , colorIdentity ,colors ,scryfallId ,scryfallIllustrationId ,uuid".to_string()
     }
 
     fn row_to_card(row: &Row) -> Result<Card, Error> {
@@ -117,22 +118,23 @@ impl CardService {
             id: row.get(0).unwrap(),
             name: row.get(1).unwrap(),
             mana_cost: row.get(2).unwrap_or("".to_string()),
-            mana_value: row.get(3).unwrap_or(0),
-            converted_mana_cost: row.get(4).unwrap_or(0),
-            power: row.get(5).unwrap_or(0),
-            card_types: row.get(6).unwrap(),
-            sub_types: row.get(7).unwrap_or("".to_string()),
-            set_code: row.get(8).unwrap(),
-            printings: row.get(9).unwrap(),
-            layout: row.get(10).unwrap_or("".to_string()),
-            keywords: row.get(11).unwrap_or("".to_string()),
-            flavor_text: row.get(12).unwrap_or("".to_string()),
-            color_identity: row.get(13).unwrap_or("".to_string()),
-            colors: row.get(14).unwrap_or("".to_string()),
+            mana_value: row.get(3).unwrap_or(0.0),
+            converted_mana_cost: row.get(4).unwrap_or(0.0),
+            power: row.get::<usize, String>(5).unwrap_or(String::from("0")).parse().unwrap(),
+            toughness: row.get::<usize, String>(6).unwrap_or(String::from("0")).parse().unwrap(),
+            card_types: row.get(7).unwrap(),
+            sub_types: row.get(8).unwrap_or("".to_string()),
+            set_code: row.get(9).unwrap(),
+            printings: row.get(10).unwrap(),
+            layout: row.get(11).unwrap_or("".to_string()),
+            keywords: row.get(12).unwrap_or("".to_string()),
+            flavor_text: row.get(13).unwrap_or("".to_string()),
+            color_identity: row.get(14).unwrap_or("".to_string()),
+            colors: row.get(15).unwrap_or("".to_string()),
             meta: CardMeta {
-                scryfall_id: row.get(15).unwrap_or("".to_string()),
-                scryfall_illustration_id: row.get(16).unwrap_or("".to_string()),
-                uuid: row.get(17).unwrap_or("".to_string()),
+                scryfall_id: row.get(16).unwrap_or("".to_string()),
+                scryfall_illustration_id: row.get(17).unwrap_or("".to_string()),
+                uuid: row.get(18).unwrap_or("".to_string()),
             },
         })
     }

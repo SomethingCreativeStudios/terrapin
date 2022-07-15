@@ -1,6 +1,6 @@
 export interface Card {
   name: string;
-  manaCost: number;
+  manaCost: ManaCost;
   manaValue: number;
   convertedManaCost: number;
   power: number;
@@ -18,13 +18,27 @@ export interface Card {
 }
 
 export interface ManaCost {
+  hasPhyrexian: boolean;
+  hasX: boolean;
+  hasDual: boolean;
+  mana: ManaPip[];
+}
+
+export interface ManaPip {
+  types: ManaType[];
   genericCost: number;
-  white: number;
-  blue: number;
-  black: number;
-  red: number;
-  green: number;
-  xCount: number;
+}
+
+export enum ManaType {
+  WHITE = 'W',
+  BLUE = 'U',
+  BLACK = 'B',
+  RED = 'R',
+  GREEN = 'G',
+  COLORLESS = 'C',
+  GENERIC = 'G',
+  PHYREXIAN = 'P',
+  X = 'X',
 }
 
 export interface CardMeta {
@@ -42,27 +56,53 @@ export enum CardColor {
   COLORLESS = 'C',
 }
 
-export function findColors(colorValues: string) {
+export function convertPips(colorValues: string) {
   const colorMap = {
-    '{W}': 'white',
-    '{U}': 'blue',
-    '{B}': 'black',
-    '{R}': 'red',
-    '{G}': 'green',
-    '{X}': 'xCount',
+    W: ManaType.WHITE,
+    U: ManaType.BLUE,
+    B: ManaType.BLACK,
+    R: ManaType.RED,
+    G: ManaType.GREEN,
+    P: ManaType.PHYREXIAN,
+    X: ManaType.X,
   };
 
   const manaCost = {} as ManaCost;
+  const regexMatch = colorValues.match(/{(.*?)}/g);
 
-  Object.entries(colorMap).forEach(([key, value]) => {
+  const convertToPip = (value: string): ManaPip => {
+    const parsedValue = value.replace('{', '').replace('}', '');
+
+    if (parsedValue.match(/\d/g)?.length ?? 0 > 1) {
+      return { genericCost: Number.parseInt(parsedValue), types: [] };
+    }
+
+    manaCost.hasX = manaCost.hasX || parsedValue === ManaType.X;
+    manaCost.hasPhyrexian = manaCost.hasPhyrexian || parsedValue === ManaType.PHYREXIAN;
+
     // @ts-ignore
-    manaCost[value] = colorValues.match(new RegExp(key, 'g'))?.length ?? 0;
+    return { genericCost: 0, types: [colorMap[parsedValue]] };
+  };
+
+  const handleDual = (match: string) => {
+    return match
+      .split('/')
+      .map(convertToPip)
+      .reduce((acc, pip) => ({ genericCost: pip.genericCost + acc.genericCost, types: acc.types.concat(pip.types) }), {
+        genericCost: 0,
+        types: [],
+      } as ManaPip);
+  };
+
+  const manaTypes = regexMatch?.map(match => {
+    if (match.includes('/')) {
+      manaCost.hasDual = true;
+      return handleDual(match);
+    }
+    return convertToPip(match);
   });
 
-  manaCost.xCount = colorValues.match(/{X}/g)?.length ?? 0;
-  manaCost.genericCost = Number.parseInt(colorValues.match(/{(\d*?)}/g)?.[0].replace('{', '').replace('}', '') ?? '0');
-
-  return manaCost;
+  return { ...manaCost, mana: manaTypes } as ManaCost;
 }
 
 export function toCardColor(value: string) {
