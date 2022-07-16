@@ -5,9 +5,16 @@ Smallest Product
 Pre-Set Up
 
  + Get legacy deck (ideally from mox)
- - Load a legacy deck (props kappa)
- - Load card images (steal from cockatrace.... for now)
- - Build card (show image)
- - Add drag drop
+ + Load a legacy deck (props kappa)
+ + Load card images (steal from cockatrace.... for now)
+ + Build card (show image)
+ + Add drag drop
+ + Drag And Select
  - Build generic zone
+   - Handle Drag And Drop Selected
+   - Maybe Grouping when moving? like mox field?
+   - Handle State
+    - Zone State?
+    - Global Zone State?
+    - Like Promos???
  - .... profit?sss
