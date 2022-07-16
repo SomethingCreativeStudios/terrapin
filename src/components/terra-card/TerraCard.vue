@@ -1,6 +1,6 @@
 <script lang="tsx">
-import { defineComponent, PropType, ref, onMounted } from 'vue';
-import interact from 'interactjs';
+import { defineComponent, PropType } from 'vue';
+import { useDraggable } from '~/composables/useDraggable';
 import { Card } from '~/models/card.model';
 
 export default defineComponent({
@@ -10,33 +10,15 @@ export default defineComponent({
       default: () => ({}),
     },
   },
-  setup(_) {
-    const item = ref(null);
-    const position = ref({ x: 0, y: 0 });
+  setup() {
+    const { setup } = useDraggable();
+    const { draggable } = setup();
 
-    onMounted(() => {
-      console.log(item.value);
-      interact(item.value as any).draggable({
-        listeners: {
-          start(event) {
-            console.log(position);
-            console.log(event.type, event.target);
-          },
-          move(event) {
-            position.value.x += event.dx;
-            position.value.y += event.dy;
-
-            event.target.style.transform = `translate(${position.value.x}px, ${position.value.y}px)`;
-          },
-        },
-      });
-    });
-
-    return { position, item };
+    return { draggable };
   },
   render() {
     return (
-      <div ref="item" class="terra-card draggable">
+      <div ref="draggable" class="terra-card draggable">
         <img class="terra-card__image" src={this.card.imagePath} />
       </div>
     );
@@ -51,5 +33,11 @@ export default defineComponent({
 
 .terra-card__image {
   width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.selected {
+  outline: 3px solid yellow;
 }
 </style>

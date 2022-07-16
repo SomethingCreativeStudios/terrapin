@@ -1,27 +1,31 @@
 <script lang="tsx">
-import { defineComponent } from 'vue';
+import { defineComponent, onMounted, ref } from 'vue';
 import { TerraCard } from './components';
 import { useCard } from '~/composables/useCard';
-import { computed } from '@vue/reactivity';
+import { useContainer } from '~/composables/useContainer';
 
 export default defineComponent({
   name: 'app',
   components: { TerraCard },
   setup() {
+    const { setup } = useContainer();
+    const { container } = setup();
     const { getDeck, loadDeck } = useCard();
 
     loadDeck('');
 
-    return { deck: getDeck() };
+    return { deck: getDeck(), container };
   },
 
   render() {
     return (
       <div>
-        <div class="cards">
-          {this.deck.map(card => (
-            <terra-card class="card" card={card}></terra-card>
-          ))}
+        <div ref="container" class="container">
+          <div class="cards">
+            {this.deck.map(card => (
+              <terra-card class="card" card={card}></terra-card>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -29,7 +33,7 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss">
+<style scoped lang="scss">
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -39,7 +43,14 @@ export default defineComponent({
   margin-top: 60px;
 }
 
+.container {
+  width: 100%;
+  height: 100%;
+
+  padding: 10px;
+}
 .cards {
+  height: 100%;
   width: 100%;
   display: flex;
   flex-wrap: wrap;
