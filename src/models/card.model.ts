@@ -15,8 +15,15 @@ export interface Card {
   colorIdentity: CardColor[];
   colors: CardColor[];
   imagePath: string;
+  cardId: string;
+  isToken?: boolean;
+  position?: CardPosition;
 }
 
+export interface CardPosition {
+  x: number;
+  y: number;
+}
 export interface ManaCost {
   hasPhyrexian: boolean;
   hasX: boolean;
@@ -94,7 +101,7 @@ export function convertPips(colorValues: string) {
       } as ManaPip);
   };
 
-  const manaTypes = regexMatch?.map(match => {
+  const manaTypes = regexMatch?.map((match) => {
     if (match.includes('/')) {
       manaCost.hasDual = true;
       return handleDual(match);

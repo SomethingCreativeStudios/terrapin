@@ -1,7 +1,7 @@
 import Selecto from 'selecto';
-import { onMounted, ref } from 'vue';
+import { onMounted, Ref, ref } from 'vue';
 
-function setup() {
+function setup(initialElement?: Ref<null>) {
   const container = ref(null);
   const selected = ref([] as (HTMLElement | SVGElement)[]);
 
@@ -16,9 +16,10 @@ function setup() {
   };
 
   onMounted(() => {
+    console.log(initialElement?.value);
     const selecto = new Selecto({
       // @ts-ignore
-      container: container.value,
+      container: initialElement ? initialElement.value : container.value,
       dragContainer: '.cards',
       selectableTargets: ['.cards .card'],
       hitRate: 20,

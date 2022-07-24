@@ -28,7 +28,17 @@ export default defineComponent({
 
 <style scoped lang="scss">
 .terra-card {
-  width: 6vw;
+  // width: 6vw;
+  width: 122px;
+  height: 170px;
+
+  position: absolute;
+
+  z-index: 100;
+}
+
+.terra-card.terra-card--relative {
+  position: relative;
 }
 
 .terra-card__image {
