@@ -7,11 +7,11 @@ function setup() {
 
   const selectItems = (items: (HTMLElement | SVGElement)[]) => {
     selected.value = items;
-    selected.value?.forEach(item => item.classList.add('selected'));
+    selected.value?.forEach((item) => item.classList.add('selected'));
   };
 
   const removeItems = () => {
-    selected.value?.forEach(item => item.classList.remove('selected'));
+    selected.value?.forEach((item) => item.classList.remove('selected'));
     selected.value = [];
   };
 
@@ -29,20 +29,21 @@ function setup() {
     });
 
     selecto
-      .on('dragStart', e => {
+      .on('dragStart', (e) => {
         const target = e.inputEvent.target;
 
-        if (target.classList.contains('draggable') || selected.value.some(t => t === target || t.contains(target))) {
+        if (target.classList.contains('draggable') || selected.value.some((t) => t === target || t.contains(target))) {
           removeItems();
           selectItems([target]);
           e.stop();
         } else {
         }
       })
-      .on('select', e => {
+      .on('select', (e) => {
+        removeItems();
         selectItems(e.selected);
       })
-      .on('selectStart', e => {
+      .on('selectStart', (e) => {
         removeItems();
       });
   });

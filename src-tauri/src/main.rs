@@ -35,7 +35,7 @@ fn main() {
 
 #[tauri::command]
 fn load_deck() -> Vec<Card> {
-    CardService::load_deck(r#"C:\Users\Eric\Documents\Projects\terrapin\src-tauri\test-decks\8cast.txt"#)
+    CardService::load_deck(r#".\test-decks\8cast.txt"#)
 }
 
 #[tauri::command]

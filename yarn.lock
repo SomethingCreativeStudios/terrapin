@@ -200,11 +200,6 @@
   resolved "https://registry.npmjs.org/@babel/parser/-/parser-7.18.6.tgz"
   integrity sha512-uQVSa9jJUe/G/304lXspfWVpKpK4euFLgGiMQFOCpM/bgcAdeoHwi/OQz23O9GK2osz26ZiXRRV9aV+Yl1O8tw==
 
-"@babel/parser@^7.18.4":
-  version "7.18.8"
-  resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.18.8.tgz#822146080ac9c62dac0823bb3489622e0bc1cbdf"
-  integrity sha512-RSKRfYX20dyH+elbJK2uqAkVyucL+xXzhqlMD5/ZXx+dAAwpyB7HsvnHe/ZUGOF+xLr5Wx9/JoXVTj6BQE2/oA==
-
 "@babel/plugin-syntax-import-meta@^7.10.4":
   version "7.10.4"
   resolved "https://registry.yarnpkg.com/@babel/plugin-syntax-import-meta/-/plugin-syntax-import-meta-7.10.4.tgz#ee601348c370fa334d2207be158777496521fd51"
@@ -531,15 +526,6 @@
     "@vue/compiler-core" "3.2.37"
     "@vue/shared" "3.2.37"
 
-"@vue/compiler-sfc@2.7.6":
-  version "2.7.6"
-  resolved "https://registry.yarnpkg.com/@vue/compiler-sfc/-/compiler-sfc-2.7.6.tgz#964615c10ba9098e82479afe19e87068fc72fe46"
-  integrity sha512-W677WEQdXSBEMd0egLtqKxQqmMuLM2zGPKFizjls0SYkEVrQL0ad124j7VbpEU0JLG4j8dp/3OFtvFGCG+grlQ==
-  dependencies:
-    "@babel/parser" "^7.18.4"
-    postcss "^8.4.14"
-    source-map "^0.6.1"
-
 "@vue/compiler-sfc@3.2.37", "@vue/compiler-sfc@^3.2.36":
   version "3.2.37"
   resolved "https://registry.npmjs.org/@vue/compiler-sfc/-/compiler-sfc-3.2.37.tgz"
@@ -702,11 +688,6 @@ convert-source-map@^1.7.0:
   dependencies:
     safe-buffer "~5.1.1"
 
-core-js@^2.6.5:
-  version "2.6.12"
-  resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.6.12.tgz#d9333dfa7b065e347cc5682219d6f690859cc2ec"
-  integrity sha512-Kb2wC0fvsWfQrgk8HU5lW6U/Lcs8+9aaYcy4ZFc6DDlo4nZ7n70dEgE5rtR0oG6ufKDUnrwfWL1mXR5ljDatrQ==
-
 css-styled@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/css-styled/-/css-styled-1.0.0.tgz#6fe10a98f95c24fa66cb1c41e11e7c00bcedac13"
@@ -728,30 +709,12 @@ csstype@^2.6.8:
   resolved "https://registry.npmjs.org/csstype/-/csstype-2.6.20.tgz"
   integrity sha512-/WwNkdXfckNgw6S5R125rrW8ez139lBHWouiBvX8dfMFtcn6V81REDqnH7+CRpRipfYlyU1CmOnOxrmGcFOjeA==
 
-csstype@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/csstype/-/csstype-3.1.0.tgz#4ddcac3718d787cf9df0d1b7d15033925c8f29f2"
-  integrity sha512-uX1KG+x9h5hIJsaKR9xHUeUraxf8IODOwq9JLNPq6BwB04a/xgpq3rcx47l5BZu5zBPlgD342tdke3Hom/nJRA==
-
 debug@^4.1.0:
   version "4.3.4"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.4.tgz#1319f6579357f2338d3337d2cdd4914bb5dcc865"
   integrity sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==
   dependencies:
     ms "2.1.2"
-
-drag-select-vue@^1.8.0:
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/drag-select-vue/-/drag-select-vue-1.8.0.tgz#352c19e213975bac43f803e25bf7bb8199027618"
-  integrity sha512-ck2lTRxsHKqfyRtWvNZzJ9ldv4KfXLpDVSFrPLibtmUi757gdhzLfP9YlbAjTo2/XUnYi0Tze+49L/GwWvshFQ==
-  dependencies:
-    core-js "^2.6.5"
-    vue "^2.6.10"
-
-dragselect@^2.3.1:
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/dragselect/-/dragselect-2.3.1.tgz#31fc803cbbb7c7f71723e6fb59a8bceca2f258e7"
-  integrity sha512-g1KrB7prj98Jo7B+rfVjsPrZIAWowEg3hD+g//thFjcij+NytG5n7Vmg7X81kO6HHy9ewpO1FpzOeHj/7oSwqw==
 
 electron-to-chromium@^1.4.172:
   version "1.4.172"
@@ -1099,7 +1062,7 @@ picomatch@^2.0.4, picomatch@^2.2.1, picomatch@^2.2.2:
   resolved "https://registry.yarnpkg.com/picomatch/-/picomatch-2.3.1.tgz#3ba3833733646d9d3e4995946c1365a67fb07a42"
   integrity sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==
 
-postcss@^8.1.10, postcss@^8.4.13, postcss@^8.4.14:
+postcss@^8.1.10, postcss@^8.4.13:
   version "8.4.14"
   resolved "https://registry.npmjs.org/postcss/-/postcss-8.4.14.tgz"
   integrity sha512-E398TUmfAYFPBSdzgeieK2Y1+1cpdxJx8yXbK/m57nRhKSmk1GB2tO4lbLBtlkfPQTDKfe4Xqv1ASWPpayPEig==
@@ -1206,7 +1169,7 @@ sass@^1.53.0:
     immutable "^4.0.0"
     source-map-js ">=0.6.2 <2.0.0"
 
-selecto@^1.17.0, selecto@~1.17.0:
+selecto@^1.17.0:
   version "1.17.0"
   resolved "https://registry.yarnpkg.com/selecto/-/selecto-1.17.0.tgz#2466aa7bb90d42931d2374f8189c204ba65f6ed2"
   integrity sha512-z8/9laqD8lE5CSOGaAHsTyJcXEm5JI+kM6ieOYVBzkY4P1mc6wRHKZNSU+SHbaut/FFQzOojsqtFDo2/NjYu6Q==
@@ -1306,27 +1269,12 @@ vite@^2.9.9:
   optionalDependencies:
     fsevents "~2.3.2"
 
-vue-selecto@^1.17.0:
-  version "1.17.0"
-  resolved "https://registry.yarnpkg.com/vue-selecto/-/vue-selecto-1.17.0.tgz#5e969e89f0dff1a38d8c402cf7b97b58f5e72cc5"
-  integrity sha512-bHTtxmg1ZVQfoXvvsrS6o8c0F/8++yIVBoe3sNBLZc0KLkCSlf0Pvt38kQdbk+cEvdUa0LO0w6O1fjNXRIw4GQ==
-  dependencies:
-    selecto "~1.17.0"
-
 vue-tsc@^0.34.7:
   version "0.34.17"
   resolved "https://registry.npmjs.org/vue-tsc/-/vue-tsc-0.34.17.tgz"
   integrity sha512-jzUXky44ZLHC4daaJag7FQr3idlPYN719/K1eObGljz5KaS2UnVGTU/XSYCd7d6ampYYg4OsyalbHyJIxV0aEQ==
   dependencies:
     "@volar/vue-typescript" "0.34.17"
-
-vue@^2.6.10:
-  version "2.7.6"
-  resolved "https://registry.yarnpkg.com/vue/-/vue-2.7.6.tgz#e0b2dacb8de9a16aa95d1a144b308e67ea216c52"
-  integrity sha512-5hfTjdByl2R9rtGmPzP+31/EURYwpIXhgyhZ+sO1biG3s49iuHVqwC9ZrPTqn22IPISn0UZLF5WwQ4KMMWec2w==
-  dependencies:
-    "@vue/compiler-sfc" "2.7.6"
-    csstype "^3.1.0"
 
 vue@^3.2.25:
   version "3.2.37"

@@ -1,12 +1,18 @@
 import interact from 'interactjs';
-import { onMounted, ref } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
+import { Zone } from '~/models/zone.model';
 
-function setup() {
-  const draggable = ref(null);
+const state = reactive({} as Record<string, Zone>);
+
+// @ts-ignore
+window.state.card = state;
+
+function addZone(name: string) {
+  const zone = ref(null);
   const position = ref({ x: 0, y: 0 });
 
   onMounted(() => {
-    interact(draggable.value as any).draggable({
+    interact(zone.value as any).draggable({
       modifiers: [
         interact.modifiers.snap({
           targets: [interact.snappers.grid({ x: 5, y: 5 })],
@@ -25,9 +31,9 @@ function setup() {
     });
   });
 
-  return { draggable };
+  return { zone };
 }
 
-export function useDraggable() {
-  return { setup };
+export function useZone() {
+  return { addZone };
 }
