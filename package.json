@@ -10,9 +10,11 @@
   },
   "dependencies": {
     "@tauri-apps/api": "^1.0.1",
+    "@types/dragula": "^3.7.1",
     "@types/sortablejs": "^1.13.0",
     "@types/uuid": "^8.3.4",
     "@vitejs/plugin-vue-jsx": "^1.3.10",
+    "dragula": "^3.7.3",
     "interactjs": "^1.10.17",
     "moveable": "^0.30.0",
     "selecto": "^1.17.0",

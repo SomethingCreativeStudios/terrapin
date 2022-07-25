@@ -30,7 +30,9 @@ export default defineComponent({
     const { setup } = useSortable();
 
     const { zone, zoneRef } = addZone(props.name, props.displayType);
-    setup(zoneRef);
+    if (props.displayType === DisplayType.SORTABLE) {
+      setup(props.name, zoneRef);
+    }
 
     const cardClass = computed(() => ({
       'terra-card--relative': props.displayType === DisplayType.SORTABLE,

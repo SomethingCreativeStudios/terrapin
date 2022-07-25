@@ -21,6 +21,12 @@ function moveCard(fromZone: string, toZone: string, card: Card) {
   }
 }
 
+function reorderCards(zone: string, oldIndex: number, newIndex: number) {
+  const cards = state.zones[zone].cards;
+  const item = cards.splice(oldIndex, 1)[0];
+  cards.splice(newIndex, 0, item);
+}
+
 function addZone(name: string, displayType: DisplayType) {
   const zoneRef = ref(null);
 
@@ -29,15 +35,34 @@ function addZone(name: string, displayType: DisplayType) {
   onMounted(() => {
     if (!zoneRef.value) return;
 
+    (zoneRef.value as HTMLElement).ondragover = (event) => {
+      event.preventDefault();
+
+      if (event.dataTransfer) {
+        const image = new Image();
+        image.src = '';
+        event.dataTransfer.setDragImage(image, 0, 0);
+        event.dataTransfer.dropEffect = 'move';
+      }
+    };
+
     (zoneRef.value as HTMLElement).ondragend = (event) => {
       const draggableElement = event.target as HTMLElement;
 
-      const cardPos = displayType === DisplayType.SORTABLE ? undefined : getOffsetPosition(zoneRef.value as any, draggableElement);
-      const daZone = document.elementFromPoint(event.clientX, event.clientY);
+      const daZones = document.elementsFromPoint(event.clientX, event.clientY);
+      const daZone = daZones.find((ele) => ele.classList.contains('terra-zone'));
 
-      if (daZone) {
+      // @ts-ignore
+      if (daZone && daZone.__vue__.name !== name) {
         // @ts-ignore
         const zoneName = daZone.__vue__.name;
+        const zoneBox = daZone.getBoundingClientRect();
+
+        const clientX = event.clientX - 61;
+        const clientY = event.clientY - 85;
+
+        const cardPos = { x: clientX - zoneBox.x, y: clientY - zoneBox.y };
+
         moveCardDragDrop(zoneName, draggableElement, cardPos);
       }
     };
@@ -77,9 +102,6 @@ function addZone(name: string, displayType: DisplayType) {
         }
 
         const draggableElement = event.relatedTarget as HTMLElement;
-
-        console.log('Dropped', draggableElement.getBoundingClientRect());
-
         const cardPos = displayType === DisplayType.SORTABLE ? undefined : getOffsetPosition(zoneRef.value as any, draggableElement);
 
         moveCardDragDrop(name, draggableElement, cardPos);
@@ -96,7 +118,7 @@ function addZone(name: string, displayType: DisplayType) {
 }
 
 export function useZone() {
-  return { addZone, moveCard, addCardToZone };
+  return { addZone, moveCard, addCardToZone, reorderCards };
 }
 
 function getCard(element: HTMLElement): Card {

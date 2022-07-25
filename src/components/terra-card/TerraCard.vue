@@ -52,10 +52,18 @@ export default defineComponent({
   position: relative;
 }
 
+.droppable {
+  z-index: 110;
+}
+
 .terra-card__image {
   width: 100%;
   height: 100%;
   pointer-events: none;
+}
+
+.terra-card--ghosted {
+  opacity: 0.6;
 }
 
 .selected {
