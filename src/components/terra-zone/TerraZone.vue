@@ -1,8 +1,8 @@
 <script lang="tsx">
 import { computed } from '@vue/reactivity';
-import { defineComponent, PropType } from 'vue';
+import { defineComponent, onMounted, PropType } from 'vue';
 import TerraCard from '~/components/terra-card';
-import { useContainer } from '~/composables/useContainer';
+import { useSortable } from '~/composables/useSortable';
 import { useZone } from '~/composables/useZone';
 import { DisplayType } from '~/models/zone.model';
 
@@ -17,7 +17,7 @@ export default defineComponent({
 
     displayType: {
       type: String as PropType<DisplayType>,
-      default: DisplayType.TOP_LEFT,
+      default: DisplayType.FREE_POSITION,
     },
 
     color: {
@@ -27,22 +27,23 @@ export default defineComponent({
   },
   setup(props) {
     const { addZone } = useZone();
-    const { setup } = useContainer();
+    const { setup } = useSortable();
 
     const { zone, zoneRef } = addZone(props.name, props.displayType);
-    const { container } = setup(zoneRef);
+    setup(zoneRef);
 
     const cardClass = computed(() => ({
-      'terra-card--relative': props.displayType === DisplayType.FLEX_ROW,
+      'terra-card--relative': props.displayType === DisplayType.SORTABLE,
     }));
 
     return { zoneRef, zone, cardClass };
   },
   render() {
     return (
-      <div ref="zoneRef" class="terra-zone">
+      <div ref="zoneRef" class={'terra-zone list-group'}>
+        {this.zone.cards.length}
         {this.zone.cards.map((card) => (
-          <terra-card class={this.cardClass} card={card} key={card.cardId}></terra-card>
+          <terra-card class={this.cardClass} card={card} displayType={this.displayType} key={card.cardId}></terra-card>
         ))}
       </div>
     );
@@ -52,7 +53,6 @@ export default defineComponent({
 
 <style scoped lang="scss">
 .terra-zone {
-  position: relative;
   width: 100%;
   height: 100%;
 
@@ -65,5 +65,13 @@ export default defineComponent({
 
 .droppable-target {
   background: yellow;
+}
+
+.test {
+  width: 122px;
+  height: 170px;
+
+  background-color: brown;
+  margin-left: 10px;
 }
 </style>

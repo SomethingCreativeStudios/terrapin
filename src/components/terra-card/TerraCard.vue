@@ -1,18 +1,29 @@
 <script lang="tsx">
-import { defineComponent, PropType } from 'vue';
+import { defineComponent, onMounted, PropType } from 'vue';
 import { useDraggable } from '~/composables/useDraggable';
 import { Card } from '~/models/card.model';
+import { DisplayType } from '~/models/zone.model';
 
 export default defineComponent({
+  name: 'terra-card',
   props: {
     card: {
       type: Object as PropType<Card>,
       default: () => ({}),
     },
+
+    displayType: {
+      type: String as PropType<DisplayType>,
+      default: DisplayType.FREE_POSITION,
+    },
   },
-  setup() {
+  setup(props) {
     const { setup } = useDraggable();
-    const { draggable } = setup();
+    const { draggable } = setup(props.card.position);
+
+    if (props.displayType === DisplayType.SORTABLE) {
+      return {};
+    }
 
     return { draggable };
   },

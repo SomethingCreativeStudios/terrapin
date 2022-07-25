@@ -1,32 +1,47 @@
 import { computed } from '@vue/reactivity';
 import interact from 'interactjs';
 import { onMounted, reactive, ref } from 'vue';
-import { Card } from '~/models/card.model';
+import { Card, CardPosition } from '~/models/card.model';
 import { DisplayType, Zone } from '~/models/zone.model';
 
-const state = reactive({} as Record<string, Zone>);
+const state = reactive({ zones: {} as Record<string, Zone> });
 
 // @ts-ignore
 window.state.zone = state;
 
 function addCardToZone(zone: string, card: Card) {
-  state[zone].cards.push(card);
+  state.zones[zone].cards.push(card);
 }
 
 function moveCard(fromZone: string, toZone: string, card: Card) {
-  state[fromZone].cards = state[fromZone].cards.filter((zoneCard) => zoneCard.cardId !== card.cardId);
+  state.zones[fromZone].cards = state.zones[fromZone].cards.filter((zoneCard) => zoneCard.cardId !== card.cardId);
 
-  if (!state[toZone].cards.some((zoneCard) => zoneCard.cardId === card.cardId)) {
-    state[toZone].cards.push(card);
+  if (!state.zones[toZone].cards.some((zoneCard) => zoneCard.cardId === card.cardId)) {
+    state.zones[toZone].cards.push(card);
   }
 }
 
 function addZone(name: string, displayType: DisplayType) {
   const zoneRef = ref(null);
 
-  state[name] = { cards: [], displayType };
+  state.zones[name] = { cards: [], displayType };
 
   onMounted(() => {
+    if (!zoneRef.value) return;
+
+    (zoneRef.value as HTMLElement).ondragend = (event) => {
+      const draggableElement = event.target as HTMLElement;
+
+      const cardPos = displayType === DisplayType.SORTABLE ? undefined : getOffsetPosition(zoneRef.value as any, draggableElement);
+      const daZone = document.elementFromPoint(event.clientX, event.clientY);
+
+      if (daZone) {
+        // @ts-ignore
+        const zoneName = daZone.__vue__.name;
+        moveCardDragDrop(zoneName, draggableElement, cardPos);
+      }
+    };
+
     interact(zoneRef.value as any).dropzone({
       accept: '.draggable',
       overlap: 0.75,
@@ -44,8 +59,8 @@ function addZone(name: string, displayType: DisplayType) {
           return;
         }
 
-        var draggableElement = event.relatedTarget;
-        var dropzoneElement = event.target;
+        const draggableElement = event.relatedTarget;
+        const dropzoneElement = event.target;
 
         // feedback the possibility of a drop
         dropzoneElement.classList.add('droppable-target');
@@ -61,11 +76,13 @@ function addZone(name: string, displayType: DisplayType) {
           return;
         }
 
-        var draggableElement = event.relatedTarget;
-        var dropzoneElement = event.target;
+        const draggableElement = event.relatedTarget as HTMLElement;
 
-        console.log('Dropped', draggableElement.__vue__.card.name);
-        moveCardDragDrop(name, draggableElement);
+        console.log('Dropped', draggableElement.getBoundingClientRect());
+
+        const cardPos = displayType === DisplayType.SORTABLE ? undefined : getOffsetPosition(zoneRef.value as any, draggableElement);
+
+        moveCardDragDrop(name, draggableElement, cardPos);
       },
       ondropdeactivate: function (event) {
         // remove active dropzone feedback
@@ -75,7 +92,7 @@ function addZone(name: string, displayType: DisplayType) {
     });
   });
 
-  return { zoneRef, zone: computed(() => state[name]) };
+  return { zoneRef, zone: computed(() => state.zones[name]) };
 }
 
 export function useZone() {
@@ -84,23 +101,32 @@ export function useZone() {
 
 function getCard(element: HTMLElement): Card {
   // @ts-ignore
-  return element.__vue__.card;
+  return element?.__vue__?.card ?? element.__vueParentComponent.ctx.card;
 }
 
 function isSameZone(zone: string, element: HTMLElement) {
   const card = getCard(element);
-  const cards = state[zone].cards ?? [];
+  const cards = state.zones[zone].cards ?? [];
 
   return cards.some((zoneCard) => card.cardId === zoneCard.cardId);
 }
 
-function moveCardDragDrop(newZone: string, element: HTMLElement) {
+function moveCardDragDrop(newZone: string, element: HTMLElement, newPosition?: CardPosition) {
   const card = getCard(element);
   const currentZone = findZoneFromCard(card);
+
+  card.position = newPosition ? newPosition : card.position;
 
   moveCard(currentZone || '', newZone, card);
 }
 
 function findZoneFromCard({ cardId }: Card) {
-  return Object.entries(state).find(([_, zone]) => zone.cards.some((card) => card.cardId === cardId))?.[0];
+  return Object.entries(state.zones).find(([_, zone]) => zone.cards.some((card) => card.cardId === cardId))?.[0];
+}
+
+function getOffsetPosition(zone: HTMLElement, card: HTMLElement): CardPosition {
+  const zoneBox = zone.getBoundingClientRect();
+  const cardBox = card.getBoundingClientRect();
+
+  return { x: cardBox.x - zoneBox.x, y: cardBox.y - zoneBox.y };
 }

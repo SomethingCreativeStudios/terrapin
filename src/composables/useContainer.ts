@@ -44,7 +44,7 @@ function setup(initialElement?: Ref<null>) {
         removeItems();
         selectItems(e.selected);
       })
-      .on('selectStart', (e) => {
+      .on('selectStart', () => {
         removeItems();
       });
   });

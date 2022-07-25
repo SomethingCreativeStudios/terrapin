@@ -22,8 +22,7 @@ export default defineComponent({
     return (
       <div class="play-mat">
         <terra-zone class="zone-battlefield" name="battlefield" color={`#${Math.floor(Math.random() * 16777215).toString(16)}`}></terra-zone>
-        <terra-zone class="zone-hand" name="hand" displayType={DisplayType.FLEX_ROW} color={`#${Math.floor(Math.random() * 16777215).toString(16)}`}></terra-zone>
-        <terra-zone class="zone-deck" name="deck" color={`#${Math.floor(Math.random() * 16777215).toString(16)}`}></terra-zone>
+        <terra-zone class="zone-hand" name="hand" displayType={DisplayType.SORTABLE} color={`#${Math.floor(Math.random() * 16777215).toString(16)}`}></terra-zone>
       </div>
     );
   },

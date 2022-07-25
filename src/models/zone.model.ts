@@ -6,7 +6,7 @@ export interface Zone {
 }
 
 export enum DisplayType {
-  TOP_LEFT = 'top-left',
-  FLEX_ROW = 'flex-row',
+  FREE_POSITION = 'free-position',
+  SORTABLE = 'sortable',
   NONE = 'none',
 }

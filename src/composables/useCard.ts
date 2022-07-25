@@ -17,15 +17,23 @@ window.state.card = state;
 async function loadDeck(deckName: string) {
   const foundDeck = await invoke<any[]>(CardEventName.LOAD_DECK, { deck_name: deckName });
   console.log(foundDeck);
-  state.deck = foundDeck.map((item) => toModel(item));
+  state.deck = foundDeck.map((item: any) => toModel(item));
 
-  addCardToZone('hand', state.deck[0]);
-  addCardToZone('hand', state.deck[1]);
-  addCardToZone('hand', state.deck[2]);
-  addCardToZone('hand', state.deck[3]);
-  addCardToZone('hand', state.deck[4]);
-  addCardToZone('hand', state.deck[5]);
-  addCardToZone('hand', state.deck[6]);
+  const randomIntFromInterval = () => {
+    const max = state.deck.length - 1;
+    const min = 0;
+
+    // min and max included
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  };
+
+  addCardToZone('hand', state.deck[randomIntFromInterval()]);
+  addCardToZone('hand', state.deck[randomIntFromInterval()]);
+  addCardToZone('hand', state.deck[randomIntFromInterval()]);
+  addCardToZone('hand', state.deck[randomIntFromInterval()]);
+  addCardToZone('hand', state.deck[randomIntFromInterval()]);
+  addCardToZone('hand', state.deck[randomIntFromInterval()]);
+  addCardToZone('hand', state.deck[randomIntFromInterval()]);
 }
 
 function getDeck() {
