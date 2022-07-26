@@ -1,5 +1,5 @@
 <script lang="tsx">
-import { defineComponent, onMounted, PropType } from 'vue';
+import { defineComponent, computed, PropType, ref } from 'vue';
 import { useDraggable } from '~/composables/useDraggable';
 import { Card } from '~/models/card.model';
 import { DisplayType } from '~/models/zone.model';
@@ -18,18 +18,34 @@ export default defineComponent({
     },
   },
   setup(props) {
+    const cardState = ref('initial');
     const { setup } = useDraggable();
     const { draggable } = setup(props.card.position);
+    const cardClass = computed(() => ({
+      'terra-card': true,
+      [`terra-card__${cardState.value}`]: true,
+      'terra-card--relative': props.displayType === DisplayType.SORTABLE,
+      draggable: true,
+    }));
 
     if (props.displayType === DisplayType.SORTABLE) {
-      return {};
+      return { cardClass };
     }
 
-    return { draggable };
+    return { draggable, cardState, cardClass };
+  },
+  methods: {
+    onTap(payload: MouseEvent) {
+      if (this.cardState === 'tapped') {
+        this.cardState = 'untapped';
+      } else {
+        this.cardState = 'tapped';
+      }
+    },
   },
   render() {
     return (
-      <div ref="draggable" class="terra-card draggable">
+      <div ref="draggable" class={this.cardClass} onDblclick={this.onTap}>
         <img class="terra-card__image" src={this.card.imagePath} />
       </div>
     );
@@ -46,6 +62,18 @@ export default defineComponent({
   position: absolute;
 
   z-index: 100;
+}
+
+.terra-card__tapped {
+  .terra-card__image {
+    animation: tap 0.2s linear forwards;
+  }
+}
+
+.terra-card__untapped {
+  .terra-card__image {
+    animation: untap 0.2s linear forwards;
+  }
 }
 
 .terra-card.terra-card--relative {
@@ -68,5 +96,20 @@ export default defineComponent({
 
 .selected {
   outline: 3px solid yellow;
+}
+
+@keyframes tap {
+  100% {
+    transform: rotate(90deg);
+  }
+}
+
+@keyframes untap {
+  0% {
+    transform: rotate(90deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
 }
 </style>

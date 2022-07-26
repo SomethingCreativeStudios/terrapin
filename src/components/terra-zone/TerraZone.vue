@@ -1,8 +1,8 @@
 <script lang="tsx">
-import { computed } from '@vue/reactivity';
-import { defineComponent, onMounted, PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import TerraCard from '~/components/terra-card';
 import { useSortable } from '~/composables/useSortable';
+import { useContainer } from '~/composables/useContainer';
 import { useZone } from '~/composables/useZone';
 import { DisplayType } from '~/models/zone.model';
 
@@ -28,25 +28,25 @@ export default defineComponent({
   setup(props) {
     const { addZone } = useZone();
     const { setup } = useSortable();
+    const { setup: containerSetUp } = useContainer();
 
     const { zone, zoneRef } = addZone(props.name, props.displayType);
     if (props.displayType === DisplayType.SORTABLE) {
       setup(props.name, zoneRef);
+    } else {
+      containerSetUp(zoneRef);
     }
 
-    const cardClass = computed(() => ({
-      'terra-card--relative': props.displayType === DisplayType.SORTABLE,
-    }));
-
-    return { zoneRef, zone, cardClass };
+    return { zoneRef, zone };
   },
   render() {
     return (
       <div ref="zoneRef" class={'terra-zone list-group'}>
         {this.zone.cards.length}
         {this.zone.cards.map((card) => (
-          <terra-card class={this.cardClass} card={card} displayType={this.displayType} key={card.cardId}></terra-card>
+          <terra-card card={card} displayType={this.displayType} key={card.cardId}></terra-card>
         ))}
+        {this.$slots?.['default']?.()}
       </div>
     );
   },

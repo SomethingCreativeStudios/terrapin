@@ -5,7 +5,7 @@ import { useZone } from './useZone';
 import { Card, toCardColor, convertPips } from '~/models/card.model';
 
 const { addCardToZone } = useZone();
-const state = reactive({ deck: [] as Card[] });
+const state = reactive({ deck: [] as Card[], hoveredCard: {} as Card });
 
 enum CardEventName {
   LOAD_DECK = 'load_deck',
@@ -13,6 +13,27 @@ enum CardEventName {
 
 // @ts-ignore
 window.state.card = state;
+
+function setUpHover() {
+  document.onmousemove = (ev) => {
+    const els = document.elementsFromPoint(ev.x, ev.y);
+    const card = els.find((el) => el.classList.contains('terra-card'));
+
+    if (card) {
+      // @ts-ignore
+      state.hoveredCard = card.__vue__.card;
+    }
+  };
+
+  document.ondblclick = (ev) => {
+    const els = document.elementsFromPoint(ev.x, ev.y);
+    const card = els.find((el) => el.classList.contains('terra-card'));
+
+    if (!card) {
+      state.hoveredCard = {} as Card;
+    }
+  };
+}
 
 async function loadDeck(deckName: string) {
   const foundDeck = await invoke<any[]>(CardEventName.LOAD_DECK, { deck_name: deckName });
@@ -40,8 +61,12 @@ function getDeck() {
   return computed(() => state.deck);
 }
 
+function getHoveredCard() {
+  return computed(() => state.hoveredCard);
+}
+
 export function useCard() {
-  return { loadDeck, getDeck };
+  return { loadDeck, getDeck, setUpHover, getHoveredCard };
 }
 
 function toModel(item: any): Card {

@@ -1,6 +1,6 @@
 import { computed } from '@vue/reactivity';
 import interact from 'interactjs';
-import { onMounted, reactive, ref } from 'vue';
+import { HtmlHTMLAttributes, onMounted, reactive, ref } from 'vue';
 import { Card, CardPosition } from '~/models/card.model';
 import { DisplayType, Zone } from '~/models/zone.model';
 
@@ -25,6 +25,19 @@ function reorderCards(zone: string, oldIndex: number, newIndex: number) {
   const cards = state.zones[zone].cards;
   const item = cards.splice(oldIndex, 1)[0];
   cards.splice(newIndex, 0, item);
+}
+
+function dragDropCard(zone: HTMLElement, card: HTMLElement, dropPos: CardPosition) {
+  // @ts-ignore
+  const zoneName = zone.__vue__.name;
+  const zoneBox = zone.getBoundingClientRect();
+
+  const clientX = dropPos.x - 61;
+  const clientY = dropPos.y - 85;
+
+  const cardPos = { x: clientX - zoneBox.x, y: clientY - zoneBox.y };
+
+  moveCardDragDrop(zoneName, card, cardPos);
 }
 
 function addZone(name: string, displayType: DisplayType) {
@@ -118,7 +131,7 @@ function addZone(name: string, displayType: DisplayType) {
 }
 
 export function useZone() {
-  return { addZone, moveCard, addCardToZone, reorderCards };
+  return { addZone, moveCard, addCardToZone, reorderCards, dragDropCard };
 }
 
 function getCard(element: HTMLElement): Card {

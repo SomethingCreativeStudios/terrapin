@@ -16,12 +16,11 @@ function setup(initialElement?: Ref<null>) {
   };
 
   onMounted(() => {
-    console.log(initialElement?.value);
     const selecto = new Selecto({
       // @ts-ignore
       container: initialElement ? initialElement.value : container.value,
-      dragContainer: '.cards',
-      selectableTargets: ['.cards .card'],
+      dragContainer: '.terra-zone',
+      selectableTargets: ['.draggable'],
       hitRate: 20,
       selectByClick: true,
       selectFromInside: true,

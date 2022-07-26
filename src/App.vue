@@ -1,18 +1,19 @@
 <script lang="tsx">
-import { defineComponent, onMounted, ref } from 'vue';
-import { TerraCard, TerraZone } from './components';
+import { defineComponent } from 'vue';
+import { TerraCard, TerraZone, TerraHoverCard } from './components';
 import { useCard } from '~/composables/useCard';
 import { useContainer } from '~/composables/useContainer';
 import { DisplayType } from './models/zone.model';
 
 export default defineComponent({
   name: 'app',
-  components: { TerraCard, TerraZone },
+  components: { TerraCard, TerraZone, TerraHoverCard },
   setup() {
     const { setup } = useContainer();
     const { container } = setup();
-    const { getDeck, loadDeck } = useCard();
+    const { getDeck, loadDeck, setUpHover } = useCard();
 
+    setUpHover();
     loadDeck('');
 
     return { deck: getDeck(), container };
@@ -21,8 +22,11 @@ export default defineComponent({
   render() {
     return (
       <div class="play-mat">
-        <terra-zone class="zone-battlefield" name="battlefield" color={`#${Math.floor(Math.random() * 16777215).toString(16)}`}></terra-zone>
+        <terra-zone class="zone-battlefield" name="battlefield" color={`#${Math.floor(Math.random() * 16777215).toString(16)}`}>
+          <terra-hover-card></terra-hover-card>
+        </terra-zone>
         <terra-zone class="zone-hand" name="hand" displayType={DisplayType.SORTABLE} color={`#${Math.floor(Math.random() * 16777215).toString(16)}`}></terra-zone>
+        <terra-zone class="zone-deck" name="deck" color={`#${Math.floor(Math.random() * 16777215).toString(16)}`}></terra-zone>
       </div>
     );
   },
@@ -46,11 +50,21 @@ export default defineComponent({
     'hand        hand        deck';
 
   grid-template-columns: 1fr 1fr 200px;
-  grid-template-rows: 500px 200px;
+  grid-template-rows: 1fr 200px;
+
+  height: 100%;
+  width: 100%;
 }
 
 .zone-battlefield {
   grid-area: battlefield;
+  position: relative;
+}
+
+.terra-hover-card {
+  position: absolute;
+  bottom: 0;
+  right: 0;
 }
 
 .zone-hand {
