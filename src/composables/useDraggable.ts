@@ -36,11 +36,13 @@ function setup(initialPosition?: CardPosition) {
       ],
       listeners: {
         move(event) {
-          draggableEvents.emit(DraggableEvents.ON_POSITION_MOVE, { offset: { x: event.dx, y: event.dy } as CardPosition });
           position.value.x += event.dx;
           position.value.y += event.dy;
 
           event.target.style.transform = `translate(${position.value.x}px, ${position.value.y}px)`;
+
+          // Send position move event
+          draggableEvents.emit(DraggableEvents.ON_POSITION_MOVE, { offset: { x: event.dx, y: event.dy } as CardPosition });
         },
       },
     });
