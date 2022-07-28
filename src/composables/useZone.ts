@@ -1,6 +1,6 @@
 import { computed } from '@vue/reactivity';
 import interact from 'interactjs';
-import { HtmlHTMLAttributes, onMounted, reactive, ref } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
 import { Card, CardPosition } from '~/models/card.model';
 import { DisplayType, Zone } from '~/models/zone.model';
 
@@ -43,7 +43,7 @@ function dragDropCard(zone: HTMLElement, card: HTMLElement, dropPos: CardPositio
 function addZone(name: string, displayType: DisplayType) {
   const zoneRef = ref(null);
 
-  state.zones[name] = { cards: [], displayType };
+  state.zones[name] = { cards: [], selected: [], wasSelected: [], displayType };
 
   onMounted(() => {
     if (!zoneRef.value) return;
@@ -130,8 +130,25 @@ function addZone(name: string, displayType: DisplayType) {
   return { zoneRef, zone: computed(() => state.zones[name]) };
 }
 
+function updateSelected(name: string, selected: Card[]) {
+  state.zones[name].wasSelected = [...state.zones[name].selected];
+  state.zones[name].selected = selected;
+}
+
+function findZoneFromCard({ cardId }: Card) {
+  return Object.entries(state.zones).find(([_, zone]) => zone.cards.some((card) => card.cardId === cardId))?.[0];
+}
+
+function findOtherSelectedByCard(card: Card) {
+  const zoneName = findZoneFromCard(card);
+  if (zoneName) {
+    return state.zones[zoneName].selected.filter((found) => found.cardId !== card.cardId);
+  }
+  return [];
+}
+
 export function useZone() {
-  return { addZone, moveCard, addCardToZone, reorderCards, dragDropCard };
+  return { addZone, moveCard, addCardToZone, reorderCards, dragDropCard, findZoneFromCard, findOtherSelectedByCard, updateSelected };
 }
 
 function getCard(element: HTMLElement): Card {
@@ -153,10 +170,6 @@ function moveCardDragDrop(newZone: string, element: HTMLElement, newPosition?: C
   card.position = newPosition ? newPosition : card.position;
 
   moveCard(currentZone || '', newZone, card);
-}
-
-function findZoneFromCard({ cardId }: Card) {
-  return Object.entries(state.zones).find(([_, zone]) => zone.cards.some((card) => card.cardId === cardId))?.[0];
 }
 
 function getOffsetPosition(zone: HTMLElement, card: HTMLElement): CardPosition {

@@ -1,10 +1,20 @@
 import interact from 'interactjs';
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { CardPosition } from '~/models/card.model';
+import { EventEmitter } from '~/models/event-emitter.model';
+
+export enum DraggableEvents {
+  ON_POSITION_MOVE = 'on-position',
+}
 
 function setup(initialPosition?: CardPosition) {
   const draggable = ref(null);
   const position = ref({ x: 0, y: 0 });
+  const draggableEvents = new EventEmitter();
+
+  onUnmounted(() => {
+    draggableEvents.cleanUp();
+  });
 
   onMounted(() => {
     if (!draggable.value) return;
@@ -26,6 +36,7 @@ function setup(initialPosition?: CardPosition) {
       ],
       listeners: {
         move(event) {
+          draggableEvents.emit(DraggableEvents.ON_POSITION_MOVE, { offset: { x: event.dx, y: event.dy } as CardPosition });
           position.value.x += event.dx;
           position.value.y += event.dy;
 
@@ -35,7 +46,7 @@ function setup(initialPosition?: CardPosition) {
     });
   });
 
-  return { draggable, position };
+  return { draggable, position, draggableEvents };
 }
 
 export function useDraggable() {

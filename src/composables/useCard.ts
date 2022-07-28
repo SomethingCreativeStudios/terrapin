@@ -1,20 +1,24 @@
 import { computed, reactive } from 'vue';
-import { v4 as uuidv4 } from 'uuid';
-import { invoke } from '@tauri-apps/api/tauri';
-import { useZone } from './useZone';
-import { Card, toCardColor, convertPips } from '~/models/card.model';
+import { Card, CardPosition } from '~/models/card.model';
+import { useEvents } from '~/composables/useEvents';
 
-const { addCardToZone } = useZone();
-const state = reactive({ deck: [] as Card[], hoveredCard: {} as Card });
-
-enum CardEventName {
-  LOAD_DECK = 'load_deck',
+const { onEvent, emitEvent } = useEvents();
+export enum CardBusEventName {
+  POSITION_UPDATE = 'position-update',
 }
+export interface CardPositionEvent {
+  ids: string[];
+  position: CardPosition;
+}
+
+const state = reactive({ hoveredCard: {} as Card });
 
 // @ts-ignore
 window.state.card = state;
 
-function setUpHover() {
+function setUp() {}
+
+function setUpHoverEvents() {
   document.onmousemove = (ev) => {
     const els = document.elementsFromPoint(ev.x, ev.y);
     const card = els.find((el) => el.classList.contains('terra-card'));
@@ -35,58 +39,21 @@ function setUpHover() {
   };
 }
 
-async function loadDeck(deckName: string) {
-  const foundDeck = await invoke<any[]>(CardEventName.LOAD_DECK, { deck_name: deckName });
-  console.log(foundDeck);
-  state.deck = foundDeck.map((item: any) => toModel(item));
-
-  const randomIntFromInterval = () => {
-    const max = state.deck.length - 1;
-    const min = 0;
-
-    // min and max included
-    return Math.floor(Math.random() * (max - min + 1) + min);
-  };
-
-  addCardToZone('hand', state.deck[randomIntFromInterval()]);
-  addCardToZone('hand', state.deck[randomIntFromInterval()]);
-  addCardToZone('hand', state.deck[randomIntFromInterval()]);
-  addCardToZone('hand', state.deck[randomIntFromInterval()]);
-  addCardToZone('hand', state.deck[randomIntFromInterval()]);
-  addCardToZone('hand', state.deck[randomIntFromInterval()]);
-  addCardToZone('hand', state.deck[randomIntFromInterval()]);
-}
-
-function getDeck() {
-  return computed(() => state.deck);
-}
-
 function getHoveredCard() {
   return computed(() => state.hoveredCard);
 }
 
-export function useCard() {
-  return { loadDeck, getDeck, setUpHover, getHoveredCard };
+function updatePosition(ids: string[], position: CardPosition) {
+  emitEvent(CardBusEventName.POSITION_UPDATE, { ids, position } as CardPositionEvent);
 }
 
-function toModel(item: any): Card {
-  return {
-    name: item.name,
-    manaCost: convertPips(item['mana_cost']),
-    manaValue: item['mana_value'],
-    convertedManaCost: item['converted_mana_cost'],
-    power: item.power,
-    toughness: item.toughness,
-    cardTypes: item['card_types'].split(','),
-    subTypes: item['sub_types'].split(','),
-    setCode: item['set_code'],
-    printings: item['printings'].split(','),
-    layout: item['layout'],
-    keywords: item['keywords'].split(','),
-    flavorText: item.flavor_text,
-    colorIdentity: item['color_identity'].split(',').map(toCardColor),
-    colors: item.colors.split(',').map(toCardColor),
-    imagePath: `https://card.${item.set_code}/${item.meta.scryfall_id}.png`,
-    cardId: uuidv4(),
-  };
+function onPositionUpdate(cardId: string, cb: (position: CardPosition) => void) {
+  onEvent(CardBusEventName.POSITION_UPDATE, (data: CardPositionEvent) => {
+    if (data.ids.includes(cardId)) {
+      cb(data.position);
+    }
+  });
+}
+export function useCard() {
+  return { setUp, getHoveredCard, onPositionUpdate, updatePosition, setUpHoverEvents };
 }

@@ -34,7 +34,7 @@ export default defineComponent({
     if (props.displayType === DisplayType.SORTABLE) {
       setup(props.name, zoneRef);
     } else {
-      containerSetUp(zoneRef);
+      containerSetUp(props.name, zoneRef);
     }
 
     return { zoneRef, zone };

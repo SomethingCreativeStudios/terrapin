@@ -1,22 +1,21 @@
 <script lang="tsx">
 import { defineComponent } from 'vue';
 import { TerraCard, TerraZone, TerraHoverCard } from './components';
+import { useDeck } from '~/composables/useDeck';
 import { useCard } from '~/composables/useCard';
-import { useContainer } from '~/composables/useContainer';
 import { DisplayType } from './models/zone.model';
 
 export default defineComponent({
   name: 'app',
   components: { TerraCard, TerraZone, TerraHoverCard },
   setup() {
-    const { setup } = useContainer();
-    const { container } = setup();
-    const { getDeck, loadDeck, setUpHover } = useCard();
+    const { getDeck, loadDeck } = useDeck();
+    const { setUpHoverEvents } = useCard();
 
-    setUpHover();
+    setUpHoverEvents();
     loadDeck('');
 
-    return { deck: getDeck(), container };
+    return { deck: getDeck() };
   },
 
   render() {
