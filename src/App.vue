@@ -1,8 +1,7 @@
 <script lang="tsx">
 import { defineComponent } from 'vue';
 import { TerraCard, TerraZone, TerraHoverCard } from './components';
-import { useDeck } from '~/composables/useDeck';
-import { useCard } from '~/composables/useCard';
+import { useDeck, useCard, useHotKey } from '~/composables';
 import { DisplayType } from './models/zone.model';
 
 export default defineComponent({
@@ -11,7 +10,9 @@ export default defineComponent({
   setup() {
     const { getDeck, loadDeck } = useDeck();
     const { setUpHoverEvents } = useCard();
+    const { setUpHotKeys } = useHotKey();
 
+    setUpHotKeys();
     setUpHoverEvents();
     loadDeck('');
 

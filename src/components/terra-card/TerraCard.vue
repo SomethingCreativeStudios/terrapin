@@ -21,7 +21,7 @@ export default defineComponent({
     const { cardClass, draggable, onTap, onCardClick } = setUpCard(props.card, props.displayType);
 
     if (props.displayType === DisplayType.SORTABLE) {
-      return { cardClass };
+      return { cardClass, onTap, onCardClick };
     }
 
     return { draggable, cardClass, onTap, onCardClick };
@@ -78,6 +78,10 @@ export default defineComponent({
 
 .selected .terra-card__image {
   outline: 3px solid yellow;
+}
+
+.selected {
+  z-index: 210;
 }
 
 @keyframes tap {

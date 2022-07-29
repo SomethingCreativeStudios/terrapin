@@ -1,5 +1,5 @@
 import { computed, Ref, ref } from 'vue';
-import { useEvents, useDraggable, DraggableEvents, ContainerEvents, useZone } from '~/composables';
+import { useEvents, useDraggable, DraggableEvents, ContainerEvents, useZone, CardBusEventName } from '~/composables';
 import { Card, CardPosition } from '~/models/card.model';
 import { EventEmitter } from '~/models/event-emitter.model';
 import { DisplayType } from '~/models/zone.model';
@@ -13,7 +13,7 @@ function buildClasses(cardState: Ref<string>, displayType: DisplayType) {
   }));
 }
 
-function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents: EventEmitter, draggable: Ref<null>) {
+function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents: EventEmitter, draggable: Ref<null>, cardState: Ref<string>, displayType: DisplayType) {
   const { emitEvent, onEvent } = useEvents();
   const isSelected = () => draggable.value && (draggable.value as HTMLElement).classList.contains('selected');
 
@@ -36,9 +36,32 @@ function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents
 
     (draggable.value as HTMLElement).style.transform = `translate(${position.value.x}px, ${position.value.y}px)`;
   });
+
+  onEvent(CardBusEventName.POSITION_UPDATE, ({ pos, cardId: senderId, zIndex }: { pos: CardPosition; cardId: string; zIndex?: 0 }) => {
+    if (!draggable.value) return;
+    if (cardId !== senderId) return;
+    if (!isSelected()) return;
+
+    position.value.x = pos.x;
+    position.value.y = pos.y;
+
+    if (zIndex) {
+      // @ts-ignore
+      (draggable.value as HTMLElement).style['z-index'] = zIndex;
+    }
+    (draggable.value as HTMLElement).style.transform = `translate(${position.value.x}px, ${position.value.y}px)`;
+  });
+
+  onEvent(CardBusEventName.TOGGLE_TAP_CARD, () => {
+    if (!isSelected()) return;
+
+    onTap(cardState, displayType);
+  });
 }
 
-function onTap(cardState: Ref<string>) {
+function onTap(cardState: Ref<string>, displayType: DisplayType) {
+  if (displayType === DisplayType.SORTABLE) return;
+
   if (cardState.value === 'tapped') {
     cardState.value = 'untapped';
   } else {
@@ -46,7 +69,9 @@ function onTap(cardState: Ref<string>) {
   }
 }
 
-function onCardClick(e: any, card: Card) {
+function onCardClick(e: any, card: Card, displayType: DisplayType) {
+  if (displayType === DisplayType.SORTABLE) return;
+
   const { emitEvent } = useEvents();
   const { findZoneFromCard } = useZone();
 
@@ -59,7 +84,7 @@ export function setUpCard(card: Card, displayType: DisplayType) {
 
   const cardState = ref('initial');
 
-  setUpDragEvents(card.cardId, position, draggableEvents, draggable);
+  setUpDragEvents(card.cardId, position, draggableEvents, draggable, cardState, displayType);
 
-  return { draggable, cardClass: buildClasses(cardState, displayType), onTap: () => onTap(cardState), onCardClick: (e: any) => onCardClick(e, card) };
+  return { draggable, cardClass: buildClasses(cardState, displayType), onTap: () => onTap(cardState, displayType), onCardClick: (e: any) => onCardClick(e, card, displayType) };
 }

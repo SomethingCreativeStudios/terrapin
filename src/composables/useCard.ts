@@ -4,7 +4,11 @@ import { useEvents } from '~/composables/useEvents';
 
 const { onEvent, emitEvent } = useEvents();
 export enum CardBusEventName {
+  POSITION_OFFSET_UPDATE = 'position-offset-update',
   POSITION_UPDATE = 'position-update',
+  TOGGLE_TAP_CARD = 'toggle-tap-card',
+  STACK_CARDS = 'stack-card',
+  LINE_CARDS = 'line-card',
 }
 export interface CardPositionEvent {
   ids: string[];
@@ -44,11 +48,11 @@ function getHoveredCard() {
 }
 
 function updatePosition(ids: string[], position: CardPosition) {
-  emitEvent(CardBusEventName.POSITION_UPDATE, { ids, position } as CardPositionEvent);
+  emitEvent(CardBusEventName.POSITION_OFFSET_UPDATE, { ids, position } as CardPositionEvent);
 }
 
 function onPositionUpdate(cardId: string, cb: (position: CardPosition) => void) {
-  onEvent(CardBusEventName.POSITION_UPDATE, (data: CardPositionEvent) => {
+  onEvent(CardBusEventName.POSITION_OFFSET_UPDATE, (data: CardPositionEvent) => {
     if (data.ids.includes(cardId)) {
       cb(data.position);
     }

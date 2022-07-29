@@ -28,12 +28,12 @@ export default defineComponent({
   setup(props) {
     const { addZone } = useZone();
     const { setup } = useSortable();
-    const { setup: containerSetUp } = useContainer();
 
     const { zone, zoneRef } = addZone(props.name, props.displayType);
     if (props.displayType === DisplayType.SORTABLE) {
       setup(props.name, zoneRef);
     } else {
+      const { setup: containerSetUp } = useContainer();
       containerSetUp(props.name, zoneRef);
     }
 
@@ -41,7 +41,7 @@ export default defineComponent({
   },
   render() {
     return (
-      <div ref="zoneRef" class={'terra-zone list-group'}>
+      <div ref="zoneRef" class={`terra-zone list-group terra-zone--${this.displayType === DisplayType.SORTABLE ? 'sortable' : 'container'}`}>
         {this.zone.cards.length}
         {this.zone.cards.map((card) => (
           <terra-card card={card} displayType={this.displayType} key={card.cardId}></terra-card>

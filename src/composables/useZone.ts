@@ -117,7 +117,7 @@ function addZone(name: string, displayType: DisplayType) {
         const draggableElement = event.relatedTarget as HTMLElement;
         const cardPos = displayType === DisplayType.SORTABLE ? undefined : getOffsetPosition(zoneRef.value as any, draggableElement);
 
-        moveCardDragDrop(name, draggableElement, cardPos);
+        moveCardDragDrop(name, draggableElement, cardPos, true);
       },
       ondropdeactivate: function (event) {
         // remove active dropzone feedback
@@ -163,13 +163,19 @@ function isSameZone(zone: string, element: HTMLElement) {
   return cards.some((zoneCard) => card.cardId === zoneCard.cardId);
 }
 
-function moveCardDragDrop(newZone: string, element: HTMLElement, newPosition?: CardPosition) {
+function moveCardDragDrop(newZone: string, element: HTMLElement, newPosition?: CardPosition, moveSelected = false) {
   const card = getCard(element);
   const currentZone = findZoneFromCard(card);
 
   card.position = newPosition ? newPosition : card.position;
 
   moveCard(currentZone || '', newZone, card);
+
+  if (moveSelected) {
+    state.zones[currentZone || ''].selected.forEach((card) => {
+      moveCard(currentZone || '', newZone, card);
+    });
+  }
 }
 
 function getOffsetPosition(zone: HTMLElement, card: HTMLElement): CardPosition {
