@@ -1,8 +1,12 @@
 import { computed, reactive } from 'vue';
+import { debounce } from 'debounce';
 import { Card, CardPosition } from '~/models/card.model';
 import { useEvents } from '~/composables/useEvents';
+import { useZone } from './useZone';
 
 const { onEvent, emitEvent } = useEvents();
+const { findZoneFromCard } = useZone();
+
 export enum CardBusEventName {
   POSITION_OFFSET_UPDATE = 'position-offset-update',
   POSITION_UPDATE = 'position-update',
@@ -23,15 +27,20 @@ window.state.card = state;
 function setUp() {}
 
 function setUpHoverEvents() {
-  document.onmousemove = (ev) => {
+  document.onmousemove = debounce((ev: any) => {
     const els = document.elementsFromPoint(ev.x, ev.y);
     const card = els.find((el) => el.classList.contains('terra-card'));
 
     if (card) {
       // @ts-ignore
-      state.hoveredCard = card.__vue__.card;
+      const zone = findZoneFromCard(card.__vue__.card);
+
+      if (!zone.disableHover) {
+        // @ts-ignore
+        state.hoveredCard = card.__vue__.card;
+      }
     }
-  };
+  }, 500);
 
   document.ondblclick = (ev) => {
     const els = document.elementsFromPoint(ev.x, ev.y);

@@ -40,6 +40,7 @@ function setup(initialPosition?: CardPosition) {
           position.value.y += event.dy;
 
           event.target.style.transform = `translate(${position.value.x}px, ${position.value.y}px)`;
+          event.target.style['z-index'] = ''
 
           // Send position move event
           draggableEvents.emit(DraggableEvents.ON_POSITION_MOVE, { offset: { x: event.dx, y: event.dy } as CardPosition });

@@ -1,10 +1,8 @@
 <script lang="tsx">
 import { defineComponent, PropType } from 'vue';
 import TerraCard from '~/components/terra-card';
-import { useSortable } from '~/composables/useSortable';
-import { useContainer } from '~/composables/useContainer';
-import { useZone } from '~/composables/useZone';
-import { DisplayType } from '~/models/zone.model';
+import { ContainerType } from '~/models/zone.model';
+import { useTerraZone } from './composables/useTerraZone';
 
 export default defineComponent({
   name: 'terra-zone',
@@ -15,37 +13,41 @@ export default defineComponent({
       default: '',
     },
 
-    displayType: {
-      type: String as PropType<DisplayType>,
-      default: DisplayType.FREE_POSITION,
+    containerType: {
+      type: String as PropType<ContainerType>,
+      default: ContainerType.FREE_POSITION,
     },
 
     color: {
       type: String,
       default: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
     },
+
+    disableHover: {
+      type: Boolean,
+      default: false,
+    },
   },
   setup(props) {
-    const { addZone } = useZone();
-    const { setup } = useSortable();
+    const { setUpZone } = useTerraZone();
+    const { zone, zoneRef, zoneClasses } = setUpZone(props.name, props.containerType, props.disableHover);
 
-    const { zone, zoneRef } = addZone(props.name, props.displayType);
-    if (props.displayType === DisplayType.SORTABLE) {
-      setup(props.name, zoneRef);
-    } else {
-      const { setup: containerSetUp } = useContainer();
-      containerSetUp(props.name, zoneRef);
-    }
-
-    return { zoneRef, zone };
+    return { zoneRef, zone, zoneClasses };
   },
   render() {
+    const firstCard = this.zone.cards[0];
+    const secondCard = this.zone.cards[1];
+
+    const cards = this.zone.cards.map((card) => <terra-card card={card} containerType={this.containerType} flipCard={false} key={card.cardId}></terra-card>);
+    const backOfCard = firstCard ? (
+      <div>
+        {secondCard ? <terra-card class="terra-zone__card" card={secondCard} containerType={this.containerType} flipCard={true} key={secondCard.cardId}></terra-card> : null}
+        <terra-card class="terra-zone__card" card={firstCard} containerType={this.containerType} flipCard={true} key={firstCard.cardId}></terra-card>
+      </div>
+    ) : null;
     return (
-      <div ref="zoneRef" class={`terra-zone list-group terra-zone--${this.displayType === DisplayType.SORTABLE ? 'sortable' : 'container'}`}>
-        {this.zone.cards.length}
-        {this.zone.cards.map((card) => (
-          <terra-card card={card} displayType={this.displayType} key={card.cardId}></terra-card>
-        ))}
+      <div ref="zoneRef" class={this.zoneClasses}>
+        {this.containerType === ContainerType.DIALOG ? backOfCard : cards}
         {this.$slots?.['default']?.()}
       </div>
     );

@@ -2,7 +2,7 @@ import { computed } from '@vue/reactivity';
 import interact from 'interactjs';
 import { onMounted, reactive, ref } from 'vue';
 import { Card, CardPosition } from '~/models/card.model';
-import { DisplayType, Zone } from '~/models/zone.model';
+import { ContainerType, Zone } from '~/models/zone.model';
 
 const state = reactive({ zones: {} as Record<string, Zone> });
 
@@ -40,10 +40,10 @@ function dragDropCard(zone: HTMLElement, card: HTMLElement, dropPos: CardPositio
   moveCardDragDrop(zoneName, card, cardPos);
 }
 
-function addZone(name: string, displayType: DisplayType) {
+function addZone(name: string, containerType: ContainerType, disableHover: boolean) {
   const zoneRef = ref(null);
 
-  state.zones[name] = { cards: [], selected: [], wasSelected: [], displayType };
+  state.zones[name] = { cards: [], selected: [], wasSelected: [], containerType, disableHover };
 
   onMounted(() => {
     if (!zoneRef.value) return;
@@ -115,7 +115,7 @@ function addZone(name: string, displayType: DisplayType) {
         }
 
         const draggableElement = event.relatedTarget as HTMLElement;
-        const cardPos = displayType === DisplayType.SORTABLE ? undefined : getOffsetPosition(zoneRef.value as any, draggableElement);
+        const cardPos = containerType === ContainerType.SORTABLE ? undefined : getOffsetPosition(zoneRef.value as any, draggableElement);
 
         moveCardDragDrop(name, draggableElement, cardPos, true);
       },
@@ -135,12 +135,17 @@ function updateSelected(name: string, selected: Card[]) {
   state.zones[name].selected = selected;
 }
 
-function findZoneFromCard({ cardId }: Card) {
+function findZoneNameFromCard({ cardId }: Card) {
   return Object.entries(state.zones).find(([_, zone]) => zone.cards.some((card) => card.cardId === cardId))?.[0];
 }
 
+function findZoneFromCard(card: Card) {
+  const zoneName = findZoneNameFromCard(card);
+  return state.zones[zoneName || ''];
+}
+
 function findOtherSelectedByCard(card: Card) {
-  const zoneName = findZoneFromCard(card);
+  const zoneName = findZoneNameFromCard(card);
   if (zoneName) {
     return state.zones[zoneName].selected.filter((found) => found.cardId !== card.cardId);
   }
@@ -148,7 +153,7 @@ function findOtherSelectedByCard(card: Card) {
 }
 
 export function useZone() {
-  return { addZone, moveCard, addCardToZone, reorderCards, dragDropCard, findZoneFromCard, findOtherSelectedByCard, updateSelected };
+  return { addZone, moveCard, addCardToZone, reorderCards, dragDropCard, findZoneNameFromCard, findZoneFromCard, findOtherSelectedByCard, updateSelected };
 }
 
 function getCard(element: HTMLElement): Card {
@@ -165,7 +170,7 @@ function isSameZone(zone: string, element: HTMLElement) {
 
 function moveCardDragDrop(newZone: string, element: HTMLElement, newPosition?: CardPosition, moveSelected = false) {
   const card = getCard(element);
-  const currentZone = findZoneFromCard(card);
+  const currentZone = findZoneNameFromCard(card);
 
   card.position = newPosition ? newPosition : card.position;
 

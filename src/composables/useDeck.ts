@@ -1,5 +1,6 @@
 import { computed, reactive } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
+import { curry } from 'ramda';
 import { invoke } from '@tauri-apps/api/tauri';
 import { useZone } from './useZone';
 import { Card, convertPips, toCardColor } from '~/models/card.model';
@@ -14,11 +15,28 @@ enum CardEventName {
 // @ts-ignore
 window.state.deck = state;
 
+const shuffler = curry((random: any, list: any[]) => {
+  let idx = -1;
+  let position;
+  let result = [] as any[];
+  while (++idx < list.length) {
+    position = Math.floor((idx + 1) * random());
+    result[idx] = result[position];
+    result[position] = list[idx];
+  }
+  return result;
+});
+
+const shuffle = shuffler(Math.random);
+
 async function loadDeck(deckName: string) {
   const foundDeck = await invoke<any[]>(CardEventName.LOAD_DECK, { deck_name: deckName });
-  console.log(foundDeck);
-  state.deck = foundDeck.map((item: any) => toModel(item));
 
+  state.deck = shuffle(foundDeck.map((item: any) => toModel(item))) as Card[];
+
+  state.deck.forEach((card) => addCardToZone('deck', card));
+
+  /** 
   const randomIntFromInterval = () => {
     const max = state.deck.length - 1;
     const min = 0;
@@ -27,6 +45,7 @@ async function loadDeck(deckName: string) {
     return Math.floor(Math.random() * (max - min + 1) + min);
   };
 
+
   addCardToZone('hand', state.deck[randomIntFromInterval()]);
   addCardToZone('hand', state.deck[randomIntFromInterval()]);
   addCardToZone('hand', state.deck[randomIntFromInterval()]);
@@ -34,6 +53,7 @@ async function loadDeck(deckName: string) {
   addCardToZone('hand', state.deck[randomIntFromInterval()]);
   addCardToZone('hand', state.deck[randomIntFromInterval()]);
   addCardToZone('hand', state.deck[randomIntFromInterval()]);
+  */
 }
 
 function getDeck() {

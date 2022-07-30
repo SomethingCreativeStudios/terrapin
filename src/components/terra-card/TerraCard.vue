@@ -1,8 +1,8 @@
 <script lang="tsx">
-import { defineComponent, PropType } from 'vue';
+import { defineComponent, PropType, computed } from 'vue';
 import { setUpCard } from './composables/useTerraCard';
 import { Card } from '~/models/card.model';
-import { DisplayType } from '~/models/zone.model';
+import { ContainerType } from '~/models/zone.model';
 
 export default defineComponent({
   name: 'terra-card',
@@ -12,24 +12,30 @@ export default defineComponent({
       default: () => ({}),
     },
 
-    displayType: {
-      type: String as PropType<DisplayType>,
-      default: DisplayType.FREE_POSITION,
+    containerType: {
+      type: String as PropType<ContainerType>,
+      default: ContainerType.FREE_POSITION,
+    },
+
+    flipCard: {
+      type: Boolean,
+      default: false,
     },
   },
   setup(props) {
-    const { cardClass, draggable, onTap, onCardClick } = setUpCard(props.card, props.displayType);
+    const { cardClass, draggable, onTap, onCardClick } = setUpCard(props.card, props.containerType);
+    const cardImage = computed(() => (props.flipCard ? './public/missing-image.jpeg' : props.card.imagePath));
 
-    if (props.displayType === DisplayType.SORTABLE) {
-      return { cardClass, onTap, onCardClick };
+    if (props.containerType === ContainerType.SORTABLE) {
+      return { cardClass, cardImage, onTap, onCardClick };
     }
 
-    return { draggable, cardClass, onTap, onCardClick };
+    return { draggable, cardClass, cardImage, onTap, onCardClick };
   },
   render() {
     return (
       <div ref="draggable" class={this.cardClass} onClick={this.onCardClick} onDblclick={this.onTap}>
-        <img class="terra-card__image" src={this.card.imagePath} />
+        <img class="terra-card__image" src={this.cardImage} />
       </div>
     );
   },
@@ -70,6 +76,7 @@ export default defineComponent({
   width: 100%;
   height: 100%;
   pointer-events: none;
+  box-shadow: 4px 2px 16px 0px #111;
 }
 
 .terra-card--ghosted {
@@ -81,7 +88,7 @@ export default defineComponent({
 }
 
 .selected {
-  z-index: 210;
+  z-index: 310;
 }
 
 @keyframes tap {

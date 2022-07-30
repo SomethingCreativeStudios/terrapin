@@ -1,19 +1,19 @@
 import { computed, Ref, ref } from 'vue';
-import { useEvents, useDraggable, DraggableEvents, ContainerEvents, useZone, CardBusEventName } from '~/composables';
+import { useEvents, useDraggable, DraggableEvents, ContainerBusEvents, useZone, CardBusEventName } from '~/composables';
 import { Card, CardPosition } from '~/models/card.model';
 import { EventEmitter } from '~/models/event-emitter.model';
-import { DisplayType } from '~/models/zone.model';
+import { ContainerType } from '~/models/zone.model';
 
-function buildClasses(cardState: Ref<string>, displayType: DisplayType) {
+function buildClasses(cardState: Ref<string>, containerType: ContainerType) {
   return computed(() => ({
     'terra-card': true,
     [`terra-card__${cardState.value}`]: true,
-    'terra-card--relative': displayType === DisplayType.SORTABLE,
+    'terra-card--relative': containerType === ContainerType.SORTABLE,
     draggable: true,
   }));
 }
 
-function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents: EventEmitter, draggable: Ref<null>, cardState: Ref<string>, displayType: DisplayType) {
+function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents: EventEmitter, draggable: Ref<null>, cardState: Ref<string>, containerType: ContainerType) {
   const { emitEvent, onEvent } = useEvents();
   const isSelected = () => draggable.value && (draggable.value as HTMLElement).classList.contains('selected');
 
@@ -55,12 +55,12 @@ function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents
   onEvent(CardBusEventName.TOGGLE_TAP_CARD, () => {
     if (!isSelected()) return;
 
-    onTap(cardState, displayType);
+    onTap(cardState, containerType);
   });
 }
 
-function onTap(cardState: Ref<string>, displayType: DisplayType) {
-  if (displayType === DisplayType.SORTABLE) return;
+function onTap(cardState: Ref<string>, containerType: ContainerType) {
+  if (containerType === ContainerType.SORTABLE) return;
 
   if (cardState.value === 'tapped') {
     cardState.value = 'untapped';
@@ -69,22 +69,22 @@ function onTap(cardState: Ref<string>, displayType: DisplayType) {
   }
 }
 
-function onCardClick(e: any, card: Card, displayType: DisplayType) {
-  if (displayType === DisplayType.SORTABLE) return;
+function onCardClick(e: any, card: Card, containerType: ContainerType) {
+  if (containerType === ContainerType.SORTABLE) return;
 
   const { emitEvent } = useEvents();
-  const { findZoneFromCard } = useZone();
+  const { findZoneNameFromCard } = useZone();
 
-  emitEvent(ContainerEvents.SELECT_ELEMENT, { name: findZoneFromCard(card), el: e.target });
+  emitEvent(ContainerBusEvents.SELECT_ELEMENT, { name: findZoneNameFromCard(card), el: e.target });
 }
 
-export function setUpCard(card: Card, displayType: DisplayType) {
+export function setUpCard(card: Card, containerType: ContainerType) {
   const { setup: setUpDrag } = useDraggable();
   const { draggable, position, draggableEvents } = setUpDrag(card.position);
 
   const cardState = ref('initial');
 
-  setUpDragEvents(card.cardId, position, draggableEvents, draggable, cardState, displayType);
+  setUpDragEvents(card.cardId, position, draggableEvents, draggable, cardState, containerType);
 
-  return { draggable, cardClass: buildClasses(cardState, displayType), onTap: () => onTap(cardState, displayType), onCardClick: (e: any) => onCardClick(e, card, displayType) };
+  return { draggable, cardClass: buildClasses(cardState, containerType), onTap: () => onTap(cardState, containerType), onCardClick: (e: any) => onCardClick(e, card, containerType) };
 }
