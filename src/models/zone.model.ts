@@ -21,3 +21,11 @@ export enum TopCardType {
   FACE_DOWN = 'face-down',
   HIDDEN = 'hidden',
 }
+
+export enum ZoneType {
+  hand = 'Hand',
+  deck = 'Deck',
+  battlefield = 'Battlefield',
+  graveyard = 'Graveyard',
+  exile = 'Exile',
+}

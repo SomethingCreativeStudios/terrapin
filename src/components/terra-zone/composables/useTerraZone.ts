@@ -2,11 +2,11 @@ import { computed, Ref } from 'vue';
 import { useZone, useSortable, useContainer, ContainerEvents, useEvents, CardBusEventName } from '~/composables';
 import { CardPosition } from '~/models/card.model';
 import { EventEmitter } from '~/models/event-emitter.model';
-import { ContainerType } from '~/models/zone.model';
+import { ContainerType, ZoneType } from '~/models/zone.model';
 
 type GroupType = { startingEle: HTMLElement; selected: HTMLElement[] };
 
-function setUpZone(name: string, containerType: ContainerType, disableHover: boolean) {
+function setUpZone(name: ZoneType, containerType: ContainerType, disableHover: boolean) {
   const { addZone } = useZone();
 
   const { zone, zoneRef } = addZone(name, containerType, disableHover);
@@ -28,7 +28,7 @@ function setUpClass(containerType: ContainerType) {
   }));
 }
 
-function handleContainerSetUp(name: string, containerType: ContainerType, zoneRef: Ref<null>) {
+function handleContainerSetUp(name: ZoneType, containerType: ContainerType, zoneRef: Ref<null>) {
   if (containerType !== ContainerType.FREE_POSITION) {
     const { setup } = useSortable();
     setup(name, zoneRef);

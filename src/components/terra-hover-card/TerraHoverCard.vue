@@ -21,6 +21,7 @@ export default defineComponent({
   height: 420px;
 
   z-index: 100;
+  pointer-events: none;
 }
 .terra-hover-card__image {
   width: 100%;

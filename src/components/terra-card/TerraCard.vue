@@ -24,7 +24,7 @@ export default defineComponent({
   },
   setup(props) {
     const { cardClass, draggable, onTap, onCardClick } = setUpCard(props.card, props.containerType);
-    const cardImage = computed(() => (props.flipCard ? './public/missing-image.jpeg' : props.card.imagePath));
+    const cardImage = computed(() => (props.flipCard ? './missing-image.jpeg' : props.card.imagePath));
 
     if (props.containerType === ContainerType.SORTABLE) {
       return { cardClass, cardImage, onTap, onCardClick };

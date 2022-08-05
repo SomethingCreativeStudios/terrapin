@@ -1,19 +1,19 @@
 import { computed } from '@vue/reactivity';
 import interact from 'interactjs';
-import { onMounted, reactive, ref } from 'vue';
+import { onMounted, reactive, ref, watch } from 'vue';
 import { Card, CardPosition } from '~/models/card.model';
-import { ContainerType, Zone } from '~/models/zone.model';
+import { ContainerType, Zone, ZoneType } from '~/models/zone.model';
 
 const state = reactive({ zones: {} as Record<string, Zone> });
 
 // @ts-ignore
 window.state.zone = state;
 
-function addCardToZone(zone: string, card: Card) {
+function addCardToZone(zone: ZoneType, card: Card) {
   state.zones[zone].cards.push(card);
 }
 
-function moveCard(fromZone: string, toZone: string, card: Card) {
+function moveCard(fromZone: ZoneType, toZone: ZoneType, card: Card) {
   state.zones[fromZone].cards = state.zones[fromZone].cards.filter((zoneCard) => zoneCard.cardId !== card.cardId);
 
   if (!state.zones[toZone].cards.some((zoneCard) => zoneCard.cardId === card.cardId)) {
@@ -21,7 +21,7 @@ function moveCard(fromZone: string, toZone: string, card: Card) {
   }
 }
 
-function reorderCards(zone: string, oldIndex: number, newIndex: number) {
+function reorderCards(zone: ZoneType, oldIndex: number, newIndex: number) {
   const cards = state.zones[zone].cards;
   const item = cards.splice(oldIndex, 1)[0];
   cards.splice(newIndex, 0, item);
@@ -40,7 +40,7 @@ function dragDropCard(zone: HTMLElement, card: HTMLElement, dropPos: CardPositio
   moveCardDragDrop(zoneName, card, cardPos);
 }
 
-function addZone(name: string, containerType: ContainerType, disableHover: boolean) {
+function addZone(name: ZoneType, containerType: ContainerType, disableHover: boolean) {
   const zoneRef = ref(null);
 
   state.zones[name] = { cards: [], selected: [], wasSelected: [], containerType, disableHover };
@@ -130,13 +130,13 @@ function addZone(name: string, containerType: ContainerType, disableHover: boole
   return { zoneRef, zone: computed(() => state.zones[name]) };
 }
 
-function updateSelected(name: string, selected: Card[]) {
+function updateSelected(name: ZoneType, selected: Card[]) {
   state.zones[name].wasSelected = [...state.zones[name].selected];
   state.zones[name].selected = selected;
 }
 
 function findZoneNameFromCard({ cardId }: Card) {
-  return Object.entries(state.zones).find(([_, zone]) => zone.cards.some((card) => card.cardId === cardId))?.[0];
+  return Object.entries(state.zones).find(([_, zone]) => zone.cards.some((card) => card.cardId === cardId))?.[0] as ZoneType;
 }
 
 function findZoneFromCard(card: Card) {
@@ -161,14 +161,14 @@ function getCard(element: HTMLElement): Card {
   return element?.__vue__?.card ?? element.__vueParentComponent.ctx.card;
 }
 
-function isSameZone(zone: string, element: HTMLElement) {
+function isSameZone(zone: ZoneType, element: HTMLElement) {
   const card = getCard(element);
   const cards = state.zones[zone].cards ?? [];
 
   return cards.some((zoneCard) => card.cardId === zoneCard.cardId);
 }
 
-function moveCardDragDrop(newZone: string, element: HTMLElement, newPosition?: CardPosition, moveSelected = false) {
+function moveCardDragDrop(newZone: ZoneType, element: HTMLElement, newPosition?: CardPosition, moveSelected = false) {
   const card = getCard(element);
   const currentZone = findZoneNameFromCard(card);
 

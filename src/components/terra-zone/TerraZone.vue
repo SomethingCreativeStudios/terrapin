@@ -1,7 +1,7 @@
 <script lang="tsx">
 import { defineComponent, PropType } from 'vue';
 import TerraCard from '~/components/terra-card';
-import { ContainerType } from '~/models/zone.model';
+import { ContainerType, ZoneType } from '~/models/zone.model';
 import { useTerraZone } from './composables/useTerraZone';
 
 export default defineComponent({
@@ -9,7 +9,7 @@ export default defineComponent({
   components: { TerraCard },
   props: {
     name: {
-      type: String,
+      type: String as PropType<ZoneType>,
       default: '',
     },
 
@@ -45,8 +45,16 @@ export default defineComponent({
         <terra-card class="terra-zone__card" card={firstCard} containerType={this.containerType} flipCard={true} key={firstCard.cardId}></terra-card>
       </div>
     ) : null;
+
+    const zoneHeader = (
+      <div class="terra-zone__header">
+        <div class="terra-zone__header--title">{this.name}</div>
+        {this.$slots?.['header']?.() ?? <div></div>}
+      </div>
+    );
     return (
       <div ref="zoneRef" class={this.zoneClasses}>
+        {zoneHeader}
         {this.containerType === ContainerType.DIALOG ? backOfCard : cards}
         {this.$slots?.['default']?.()}
       </div>
@@ -65,6 +73,10 @@ export default defineComponent({
   padding: 10px;
 
   display: flex;
+}
+
+.terra-zone__header {
+  position: absolute;
 }
 
 .droppable-target {

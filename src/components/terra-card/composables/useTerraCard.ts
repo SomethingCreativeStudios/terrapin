@@ -86,5 +86,10 @@ export function setUpCard(card: Card, containerType: ContainerType) {
 
   setUpDragEvents(card.cardId, position, draggableEvents, draggable, cardState, containerType);
 
-  return { draggable, cardClass: buildClasses(cardState, containerType), onTap: () => onTap(cardState, containerType), onCardClick: (e: any) => onCardClick(e, card, containerType) };
+  return {
+    draggable,
+    cardClass: buildClasses(cardState, containerType),
+    onTap: () => onTap(cardState, containerType),
+    onCardClick: (e: any) => onCardClick(e, card, containerType),
+  };
 }

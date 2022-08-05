@@ -2,7 +2,7 @@
 import { defineComponent } from 'vue';
 import { TerraCard, TerraZone, TerraHoverCard } from './components';
 import { useDeck, useCard, useHotKey } from '~/composables';
-import { ContainerType } from './models/zone.model';
+import { ContainerType, ZoneType } from './models/zone.model';
 
 export default defineComponent({
   name: 'app',
@@ -22,13 +22,13 @@ export default defineComponent({
   render() {
     return (
       <div class="play-mat">
-        <terra-zone class="zone-battlefield" name="battlefield" color={`#2c2c2c`}>
+        <terra-zone class="zone-battlefield" name={ZoneType.battlefield} color={`#2c2c2c`}>
           <terra-hover-card></terra-hover-card>
         </terra-zone>
-        <terra-zone class="zone-hand" name="hand" containerType={ContainerType.SORTABLE} color={`#2e2e2e`}></terra-zone>
-        <terra-zone class="zone-deck" name="deck" containerType={ContainerType.DIALOG} color={`#3c3b3b`} disableHover={true}></terra-zone>
-        <terra-zone class="zone-graveyard" name="graveyard" containerType={ContainerType.DIALOG} color={`#3c3b3b`} disableHover={true}></terra-zone>
-        <terra-zone class="zone-exile" name="exile" containerType={ContainerType.DIALOG} color={`#3c3b3b`} disableHover={true}></terra-zone>
+        <terra-zone class="zone-hand" name={ZoneType.hand} containerType={ContainerType.SORTABLE} color={`#2e2e2e`}></terra-zone>
+        <terra-zone class="zone-deck" name={ZoneType.deck} containerType={ContainerType.DIALOG} color={`#3c3b3b`} disableHover={true}></terra-zone>
+        <terra-zone class="zone-graveyard" name={ZoneType.graveyard} containerType={ContainerType.DIALOG} color={`#3c3b3b`} disableHover={true}></terra-zone>
+        <terra-zone class="zone-exile" name={ZoneType.exile} containerType={ContainerType.DIALOG} color={`#3c3b3b`} disableHover={true}></terra-zone>
       </div>
     );
   },

@@ -3,6 +3,7 @@ import { onMounted, onUnmounted, Ref, ref } from 'vue';
 import { useZone, useEvents, CardBusEventName } from '~/composables';
 import { Card, CardPosition } from '~/models/card.model';
 import { EventEmitter } from '~/models/event-emitter.model';
+import { ZoneType } from '~/models/zone.model';
 
 export enum ContainerBusEvents {
   SELECT_ELEMENT = 'select-element',
@@ -13,7 +14,7 @@ export enum ContainerEvents {
   GROUP_SELECTED = 'group-selected',
 }
 
-function setup(zoneName: string, initialElement?: Ref<null>) {
+function setup(zoneName: ZoneType, initialElement?: Ref<null>) {
   const container = ref(null);
   const selected = ref([] as (HTMLElement | SVGElement)[]);
   const containerEvents = new EventEmitter();
@@ -60,7 +61,7 @@ export function useContainer() {
   return { setup };
 }
 
-function handleEvents(containerEvents: EventEmitter, zoneName: string, selected: Ref<(HTMLElement | SVGElement)[]>) {
+function handleEvents(containerEvents: EventEmitter, zoneName: ZoneType, selected: Ref<(HTMLElement | SVGElement)[]>) {
   const { onEvent } = useEvents();
 
   onEvent(CardBusEventName.STACK_CARDS, () => {
@@ -85,7 +86,7 @@ function handleEvents(containerEvents: EventEmitter, zoneName: string, selected:
   });
 }
 
-function itemEvents(zoneName: string, selected: Ref<(HTMLElement | SVGElement)[]>) {
+function itemEvents(zoneName: ZoneType, selected: Ref<(HTMLElement | SVGElement)[]>) {
   const { updateSelected } = useZone();
 
   const selectItems = (items: (HTMLElement | SVGElement)[]) => {

@@ -4,6 +4,7 @@ import { curry } from 'ramda';
 import { invoke } from '@tauri-apps/api/tauri';
 import { useZone } from './useZone';
 import { Card, convertPips, toCardColor } from '~/models/card.model';
+import { ZoneType } from '~/models/zone.model';
 
 const { addCardToZone } = useZone();
 const state = reactive({ deck: [] as Card[] });
@@ -34,7 +35,7 @@ async function loadDeck(deckName: string) {
 
   state.deck = shuffle(foundDeck.map((item: any) => toModel(item))) as Card[];
 
-  state.deck.forEach((card) => addCardToZone('deck', card));
+  state.deck.forEach((card) => addCardToZone(ZoneType.deck, card));
 
   /** 
   const randomIntFromInterval = () => {
