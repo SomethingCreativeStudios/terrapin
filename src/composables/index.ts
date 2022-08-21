@@ -6,3 +6,4 @@ export * from './useEvents';
 export * from './useSortable';
 export * from './useZone';
 export * from './useHotKey';
+export * from './useMenu';

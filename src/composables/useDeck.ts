@@ -36,33 +36,22 @@ async function loadDeck(deckName: string) {
   state.deck = shuffle(foundDeck.map((item: any) => toModel(item))) as Card[];
 
   state.deck.forEach((card) => addCardToZone(ZoneType.deck, card));
-
-  /** 
-  const randomIntFromInterval = () => {
-    const max = state.deck.length - 1;
-    const min = 0;
-
-    // min and max included
-    return Math.floor(Math.random() * (max - min + 1) + min);
-  };
-
-
-  addCardToZone('hand', state.deck[randomIntFromInterval()]);
-  addCardToZone('hand', state.deck[randomIntFromInterval()]);
-  addCardToZone('hand', state.deck[randomIntFromInterval()]);
-  addCardToZone('hand', state.deck[randomIntFromInterval()]);
-  addCardToZone('hand', state.deck[randomIntFromInterval()]);
-  addCardToZone('hand', state.deck[randomIntFromInterval()]);
-  addCardToZone('hand', state.deck[randomIntFromInterval()]);
-  */
 }
 
 function getDeck() {
   return computed(() => state.deck);
 }
 
+function drawXCards(x: number) {
+  const { moveCard, getCardsInZone } = useZone();
+  const cards = getCardsInZone(ZoneType.deck);
+  const xCards = cards.value.slice(0, x);
+
+  xCards.forEach((card) => moveCard(ZoneType.deck, ZoneType.hand, card));
+}
+
 export function useDeck() {
-  return { loadDeck, getDeck };
+  return { loadDeck, getDeck, drawXCards };
 }
 
 function toModel(item: any): Card {
@@ -84,5 +73,6 @@ function toModel(item: any): Card {
     colors: item.colors.split(',').map(toCardColor),
     imagePath: `https://card.${item.set_code}/${item.meta.scryfall_id}.png`,
     cardId: uuidv4(),
+    position: { x: 0, y: 30 },
   };
 }

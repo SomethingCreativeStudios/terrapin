@@ -1,8 +1,9 @@
 <script lang="tsx">
-import { defineComponent, PropType } from 'vue';
+import { defineComponent, PropType, ref } from 'vue';
 import TerraCard from '~/components/terra-card';
 import { ContainerType, ZoneType } from '~/models/zone.model';
 import { useTerraZone } from './composables/useTerraZone';
+import { useMenu } from '~/composables';
 
 export default defineComponent({
   name: 'terra-zone',
@@ -34,6 +35,14 @@ export default defineComponent({
 
     return { zoneRef, zone, zoneClasses };
   },
+  methods: {
+    onContextMenu(e: MouseEvent) {
+      e.preventDefault();
+      const { getMenu } = useMenu();
+
+      this.$contextmenu(getMenu(this.name, { x: e.x, y: e.y }) as any);
+    },
+  },
   render() {
     const firstCard = this.zone.cards[0];
     const secondCard = this.zone.cards[1];
@@ -47,8 +56,10 @@ export default defineComponent({
     ) : null;
 
     const zoneHeader = (
-      <div class="terra-zone__header">
-        <div class="terra-zone__header--title">{this.name}</div>
+      <div class="terra-zone__header" oncontextmenu={this.onContextMenu}>
+        <div class="terra-zone__header--title">
+          {this.name} ({this.zone.cards.length})
+        </div>
         {this.$slots?.['header']?.() ?? <div></div>}
       </div>
     );
@@ -73,21 +84,17 @@ export default defineComponent({
   padding: 10px;
 
   display: flex;
+  position: relative;
 }
 
 .terra-zone__header {
   position: absolute;
+  color: #f1e8e8;
+  width: 91%;
+  text-align: center;
 }
 
 .droppable-target {
-  background: yellow;
-}
-
-.test {
-  width: 122px;
-  height: 170px;
-
-  background-color: brown;
-  margin-left: 10px;
+  background: #5c5b5b;
 }
 </style>

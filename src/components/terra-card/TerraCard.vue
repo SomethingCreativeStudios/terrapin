@@ -66,6 +66,10 @@ export default defineComponent({
 
 .terra-card.terra-card--relative {
   position: relative;
+
+  top: 30px;
+  margin-left: 3px;
+  margin-right: 3px;
 }
 
 .droppable {

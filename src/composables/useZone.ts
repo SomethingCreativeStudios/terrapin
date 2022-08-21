@@ -152,8 +152,12 @@ function findOtherSelectedByCard(card: Card) {
   return [];
 }
 
+function getCardsInZone(zone: ZoneType) {
+  return computed(() => state.zones[zone].cards);
+}
+
 export function useZone() {
-  return { addZone, moveCard, addCardToZone, reorderCards, dragDropCard, findZoneNameFromCard, findZoneFromCard, findOtherSelectedByCard, updateSelected };
+  return { addZone, getCardsInZone, moveCard, addCardToZone, reorderCards, dragDropCard, findZoneNameFromCard, findZoneFromCard, findOtherSelectedByCard, updateSelected };
 }
 
 function getCard(element: HTMLElement): Card {
@@ -172,15 +176,18 @@ function moveCardDragDrop(newZone: ZoneType, element: HTMLElement, newPosition?:
   const card = getCard(element);
   const currentZone = findZoneNameFromCard(card);
 
-  card.position = newPosition ? newPosition : card.position;
+  card.position = updateCardPosition(newZone, card?.position ?? { x: 0, y: 0 }, newPosition);
 
   moveCard(currentZone || '', newZone, card);
 
   if (moveSelected) {
     state.zones[currentZone || ''].selected.forEach((card) => {
+      card.position = updateCardPosition(newZone, card?.position ?? { x: 0, y: 0 }, newPosition);
+
       moveCard(currentZone || '', newZone, card);
     });
   }
+  state.zones[currentZone].selected = [];
 }
 
 function getOffsetPosition(zone: HTMLElement, card: HTMLElement): CardPosition {
@@ -188,4 +195,19 @@ function getOffsetPosition(zone: HTMLElement, card: HTMLElement): CardPosition {
   const cardBox = card.getBoundingClientRect();
 
   return { x: cardBox.x - zoneBox.x, y: cardBox.y - zoneBox.y };
+}
+
+function updateCardPosition(newZone: string, currentPosition: CardPosition, newPosition?: CardPosition): CardPosition {
+  const containerType = state.zones[newZone].containerType;
+
+  switch (containerType) {
+    case ContainerType.DIALOG:
+      return { x: 0, y: 30 };
+
+    case ContainerType.SORTABLE:
+      return { x: 0, y: 50 };
+
+    default:
+      return newPosition ? newPosition : currentPosition;
+  }
 }

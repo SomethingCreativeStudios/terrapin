@@ -51,8 +51,8 @@ export default defineComponent({
     'battlefield battlefield battlefield battlefield battlefield'
     'hand        hand        deck        graveyard   exile';
 
-  grid-template-columns: 1fr 1fr 200px 200px 200px;
-  grid-template-rows: 1fr 200px;
+  grid-template-columns: 1fr 1fr 150px 143px 150px;
+  grid-template-rows: 1fr 230px;
 
   height: 100%;
   width: 100%;

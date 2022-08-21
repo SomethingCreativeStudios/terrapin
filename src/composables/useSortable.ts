@@ -14,9 +14,9 @@ function setup(name: ZoneType, sortable?: Ref<null>) {
       animation: 150,
       ghostClass: 'terra-card--ghosted',
       onEnd: (evt) => {
-        if (evt.newIndex === evt.oldIndex) return;
+        if (evt.newIndex === evt.oldIndex || !evt.oldIndex || !evt.newIndex) return;
 
-        reorderCards(name, evt.oldIndex || 0, evt.newIndex || 0);
+        reorderCards(name, evt.oldIndex - 1, evt.newIndex - 1);
       },
     });
   });
