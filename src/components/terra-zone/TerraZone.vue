@@ -39,7 +39,6 @@ export default defineComponent({
     onContextMenu(e: MouseEvent) {
       e.preventDefault();
       const { getMenu } = useMenu();
-
       this.$contextmenu(getMenu(this.name, { x: e.x, y: e.y }) as any);
     },
   },

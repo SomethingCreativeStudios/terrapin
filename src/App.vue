@@ -1,12 +1,12 @@
 <script lang="tsx">
-import { defineComponent } from 'vue';
-import { TerraCard, TerraZone, TerraHoverCard } from './components';
+import { defineComponent, ref } from 'vue';
+import { TerraCard, TerraZone, TerraHoverCard, TerraCardDialog } from './components';
 import { useDeck, useCard, useHotKey } from '~/composables';
 import { ContainerType, ZoneType } from './models/zone.model';
 
 export default defineComponent({
   name: 'app',
-  components: { TerraCard, TerraZone, TerraHoverCard },
+  components: { TerraCard, TerraZone, TerraHoverCard, TerraCardDialog },
   setup() {
     const { getDeck, loadDeck } = useDeck();
     const { setUpHoverEvents } = useCard();
@@ -29,6 +29,8 @@ export default defineComponent({
         <terra-zone class="zone-deck" name={ZoneType.deck} containerType={ContainerType.DIALOG} color={`#3c3b3b`} disableHover={true}></terra-zone>
         <terra-zone class="zone-graveyard" name={ZoneType.graveyard} containerType={ContainerType.DIALOG} color={`#3c3b3b`} disableHover={true}></terra-zone>
         <terra-zone class="zone-exile" name={ZoneType.exile} containerType={ContainerType.DIALOG} color={`#3c3b3b`} disableHover={true}></terra-zone>
+
+        <terra-card-dialog width="60%" height="80%"></terra-card-dialog>
       </div>
     );
   },
