@@ -1,3 +1,4 @@
+import { emit } from 'process';
 import { computed, Ref, ref } from 'vue';
 import { useEvents, useDraggable, DraggableEvents, ContainerBusEvents, useZone, CardBusEventName } from '~/composables';
 import { Card, CardPosition } from '~/models/card.model';
@@ -9,6 +10,7 @@ function buildClasses(cardState: Ref<string>, containerType: ContainerType) {
     'terra-card': true,
     [`terra-card__${cardState.value}`]: true,
     'terra-card--relative': containerType === ContainerType.SORTABLE,
+    'terra-card--dialog': containerType === ContainerType.CARD_DIALOG,
     draggable: true,
   }));
 }
@@ -60,7 +62,7 @@ function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents
 }
 
 function onTap(cardState: Ref<string>, containerType: ContainerType) {
-  if (containerType === ContainerType.SORTABLE) return;
+  if (containerType !== ContainerType.FREE_POSITION) return;
 
   if (cardState.value === 'tapped') {
     cardState.value = 'untapped';
@@ -78,7 +80,15 @@ function onCardClick(e: any, card: Card, containerType: ContainerType) {
   emitEvent(ContainerBusEvents.SELECT_ELEMENT, { name: findZoneNameFromCard(card), el: e.target });
 }
 
-export function setUpCard(card: Card, containerType: ContainerType) {
+function onCardHover(e: MouseEvent, card: Card, containerType: ContainerType, ctx: any) {
+  if (containerType !== ContainerType.CARD_DIALOG) return;
+  const els = document.elementsFromPoint(e.x, e.y);
+  const box = els[0]?.getBoundingClientRect();
+
+  ctx.emit("cardHover", { pos: { x: box.x, y: box.y }, card } as { pos: CardPosition, card: Card });
+}
+
+export function setUpCard(card: Card, containerType: ContainerType, ctx: any) {
   const { setup: setUpDrag } = useDraggable();
   const { draggable, position, draggableEvents } = setUpDrag(card.position);
 
@@ -91,5 +101,6 @@ export function setUpCard(card: Card, containerType: ContainerType) {
     cardClass: buildClasses(cardState, containerType),
     onTap: () => onTap(cardState, containerType),
     onCardClick: (e: any) => onCardClick(e, card, containerType),
+    onCardHover: (e: any) => onCardHover(e, card, containerType, ctx),
   };
 }

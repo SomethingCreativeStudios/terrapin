@@ -22,19 +22,19 @@ export default defineComponent({
       default: false,
     },
   },
-  setup(props) {
-    const { cardClass, draggable, onTap, onCardClick } = setUpCard(props.card, props.containerType);
+  setup(props, ctx) {
+    const { cardClass, draggable, onTap, onCardClick, onCardHover } = setUpCard(props.card, props.containerType, ctx);
     const cardImage = computed(() => (props.flipCard ? './missing-image.jpeg' : props.card.imagePath));
 
-    if (props.containerType === ContainerType.SORTABLE) {
-      return { cardClass, cardImage, onTap, onCardClick };
+    if (props.containerType === ContainerType.SORTABLE || props.containerType === ContainerType.CARD_DIALOG) {
+      return { cardClass, cardImage, onTap, onCardClick, onCardHover };
     }
 
-    return { draggable, cardClass, cardImage, onTap, onCardClick };
+    return { draggable, cardClass, cardImage, onTap, onCardClick, onCardHover };
   },
   render() {
     return (
-      <div ref="draggable" class={this.cardClass} onClick={this.onCardClick} onDblclick={this.onTap}>
+      <div ref="draggable" class={this.cardClass} onClick={this.onCardClick} onDblclick={this.onTap} onMouseenter={this.onCardHover}>
         <img class="terra-card__image" src={this.cardImage} />
       </div>
     );
@@ -43,9 +43,12 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
+$card-width: 122px;
+$card-height: 170px;
+
 .terra-card {
-  width: 122px;
-  height: 170px;
+  width: $card-width;
+  height: $card-height;
 
   position: absolute;
 
@@ -64,12 +67,26 @@ export default defineComponent({
   }
 }
 
+.terra-card.terra-card--dialog,
 .terra-card.terra-card--relative {
   position: relative;
+}
 
+.terra-card.terra-card--relative {
   top: 30px;
   margin-left: 3px;
   margin-right: 3px;
+}
+
+.terra-card.terra-card--hovered {
+  position: absolute;
+}
+
+.terra-card.terra-card--hovered {
+  transition: all 11s ease-in-out;
+  .terra-card__image {
+    transform: scale(2);
+  }
 }
 
 .droppable {
@@ -93,6 +110,26 @@ export default defineComponent({
 
 .selected {
   z-index: 310;
+}
+
+.terra-card__image--overlay {
+  display: none;
+}
+
+.terra-card.terra-card--dialog {
+  .terra-card__image {
+    transition: all 0.2s ease-in-out;
+    width: $card-width;
+    height: $card-height;
+  }
+}
+
+.terra-card.terra-card--dialog:hover {
+  // z-index: 10000;
+
+  .terra-card__image {
+    // transform: scale(2);
+  }
 }
 
 @keyframes tap {

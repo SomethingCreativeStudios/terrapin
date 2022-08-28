@@ -12,7 +12,8 @@ export interface Zone {
 export enum ContainerType {
   FREE_POSITION = 'free-position',
   SORTABLE = 'sortable',
-  DIALOG = 'dialog',
+  TOP_CARD = 'top-card',
+  CARD_DIALOG='card-dialog',
   NONE = 'none',
 }
 

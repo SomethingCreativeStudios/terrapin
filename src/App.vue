@@ -1,7 +1,7 @@
 <script lang="tsx">
 import { defineComponent, ref } from 'vue';
 import { TerraCard, TerraZone, TerraHoverCard, TerraCardDialog } from './components';
-import { useDeck, useCard, useHotKey } from '~/composables';
+import { useDeck, useCard, useHotKey, useZone } from '~/composables';
 import { ContainerType, ZoneType } from './models/zone.model';
 
 export default defineComponent({
@@ -11,12 +11,13 @@ export default defineComponent({
     const { getDeck, loadDeck } = useDeck();
     const { setUpHoverEvents } = useCard();
     const { setUpHotKeys } = useHotKey();
+    const { getCardsInZone } = useZone();
 
     setUpHotKeys();
     setUpHoverEvents();
     loadDeck('');
 
-    return { deck: getDeck() };
+    return { deck: getDeck(), cards: getCardsInZone(ZoneType.deck) };
   },
 
   render() {
@@ -26,11 +27,11 @@ export default defineComponent({
           <terra-hover-card></terra-hover-card>
         </terra-zone>
         <terra-zone class="zone-hand" name={ZoneType.hand} containerType={ContainerType.SORTABLE} color={`#2e2e2e`}></terra-zone>
-        <terra-zone class="zone-deck" name={ZoneType.deck} containerType={ContainerType.DIALOG} color={`#3c3b3b`} disableHover={true}></terra-zone>
-        <terra-zone class="zone-graveyard" name={ZoneType.graveyard} containerType={ContainerType.DIALOG} color={`#3c3b3b`} disableHover={true}></terra-zone>
-        <terra-zone class="zone-exile" name={ZoneType.exile} containerType={ContainerType.DIALOG} color={`#3c3b3b`} disableHover={true}></terra-zone>
+        <terra-zone class="zone-deck" name={ZoneType.deck} containerType={ContainerType.TOP_CARD} color={`#3c3b3b`} disableHover={true}></terra-zone>
+        <terra-zone class="zone-graveyard" name={ZoneType.graveyard} containerType={ContainerType.TOP_CARD} color={`#3c3b3b`} disableHover={true}></terra-zone>
+        <terra-zone class="zone-exile" name={ZoneType.exile} containerType={ContainerType.TOP_CARD} color={`#3c3b3b`} disableHover={true}></terra-zone>
 
-        <terra-card-dialog width="60%" height="80%"></terra-card-dialog>
+        <terra-card-dialog width="60%" height="80%" cards={this.cards}></terra-card-dialog>
       </div>
     );
   },

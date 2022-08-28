@@ -153,7 +153,7 @@ function findOtherSelectedByCard(card: Card) {
 }
 
 function getCardsInZone(zone: ZoneType) {
-  return computed(() => state.zones[zone].cards);
+  return computed(() => state?.zones?.[zone]?.cards ?? []);
 }
 
 export function useZone() {
@@ -201,7 +201,10 @@ function updateCardPosition(newZone: string, currentPosition: CardPosition, newP
   const containerType = state.zones[newZone].containerType;
 
   switch (containerType) {
-    case ContainerType.DIALOG:
+    case ContainerType.CARD_DIALOG:
+      return { x: 0, y: 0 };
+
+    case ContainerType.TOP_CARD:
       return { x: 0, y: 30 };
 
     case ContainerType.SORTABLE:

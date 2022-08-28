@@ -27,6 +27,11 @@ export default defineComponent({
 
     return { showDialog, close };
   },
+  methods: {
+    onScroll() {
+      this.$emit('scroll');
+    },
+  },
   render() {
     return (
       <transition class="terra-dialog" name="modal-fade" v-show={this.showDialog}>
@@ -39,7 +44,7 @@ export default defineComponent({
               </button>
             </header>
 
-            <section class="modal-body" id="modalDescription">
+            <section class="modal-body" id="modalDescription" onscroll={this.onScroll}>
               {this.$slots?.['body']?.() ?? <div></div>}
             </section>
 
@@ -102,8 +107,9 @@ export default defineComponent({
 
 .modal-body {
   position: relative;
-  padding: 20px 10px;
   flex: 1;
+  overflow-x: hidden;
+  overflow-y: scroll;
 }
 
 .btn-close {

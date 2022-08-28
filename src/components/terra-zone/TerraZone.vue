@@ -65,7 +65,7 @@ export default defineComponent({
     return (
       <div ref="zoneRef" class={this.zoneClasses}>
         {zoneHeader}
-        {this.containerType === ContainerType.DIALOG ? backOfCard : cards}
+        {this.containerType === ContainerType.TOP_CARD ? backOfCard : cards}
         {this.$slots?.['default']?.()}
       </div>
     );
