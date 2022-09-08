@@ -13,11 +13,15 @@ function addCardToZone(zone: ZoneType, card: Card) {
   state.zones[zone].cards.push(card);
 }
 
-function moveCard(fromZone: ZoneType, toZone: ZoneType, card: Card) {
+function moveCard(fromZone: ZoneType, toZone: ZoneType, card: Card, moveToBottom = false) {
   state.zones[fromZone].cards = state.zones[fromZone].cards.filter((zoneCard) => zoneCard.cardId !== card.cardId);
 
   if (!state.zones[toZone].cards.some((zoneCard) => zoneCard.cardId === card.cardId)) {
-    state.zones[toZone].cards.push(card);
+    if (moveToBottom) {
+      state.zones[toZone].cards = [...state.zones[toZone].cards, card];
+    } else {
+      state.zones[toZone].cards.push(card);
+    }
   }
 }
 
@@ -156,8 +160,12 @@ function getCardsInZone(zone: ZoneType) {
   return computed(() => state?.zones?.[zone]?.cards ?? []);
 }
 
+function setCardsInZone(zone: ZoneType, cards: Card[]) {
+  state.zones[zone].cards = cards
+}
+
 export function useZone() {
-  return { addZone, getCardsInZone, moveCard, addCardToZone, reorderCards, dragDropCard, findZoneNameFromCard, findZoneFromCard, findOtherSelectedByCard, updateSelected };
+  return { addZone, getCardsInZone, setCardsInZone, moveCard, addCardToZone, reorderCards, dragDropCard, findZoneNameFromCard, findZoneFromCard, findOtherSelectedByCard, updateSelected };
 }
 
 function getCard(element: HTMLElement): Card {
@@ -210,7 +218,10 @@ function updateCardPosition(newZone: string, currentPosition: CardPosition, newP
     case ContainerType.SORTABLE:
       return { x: 0, y: 50 };
 
+    case ContainerType.FREE_POSITION:
+      return newPosition || currentPosition;
+
     default:
-      return newPosition ? newPosition : currentPosition;
+      return newPosition || currentPosition;
   }
 }

@@ -1,7 +1,7 @@
 import Selecto from 'selecto';
 import { onMounted, onUnmounted, Ref, ref } from 'vue';
 import { useZone, useEvents, CardBusEventName } from '~/composables';
-import { Card, CardPosition } from '~/models/card.model';
+import { CardPosition } from '~/models/card.model';
 import { EventEmitter } from '~/models/event-emitter.model';
 import { ZoneType } from '~/models/zone.model';
 

@@ -21,7 +21,7 @@ tauri = { version = "1.0.0", features = ["api-all"] }
 log = "0.4.17"
 simple_logger = "2.2.0"
 once_cell = "1.13.0"
-reqwest = { version ="0.11.11", features= ["blocking"] }
+reqwest = { version ="0.11.11", features= ["blocking", "json"] }
 futures = "0.3.21"
 tokio = "1.19.2"
 glob = "0.3.0"

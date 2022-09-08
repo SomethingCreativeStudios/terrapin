@@ -1,45 +1,32 @@
 import { computed, reactive } from 'vue';
-import { v4 as uuidv4 } from 'uuid';
-import { curry } from 'ramda';
-import { invoke } from '@tauri-apps/api/tauri';
+import { useTauri } from './useTauri';
 import { useZone } from './useZone';
-import { Card, convertPips, toCardColor } from '~/models/card.model';
+import { Card } from '~/models/card.model';
 import { ZoneType } from '~/models/zone.model';
+import { DeckActions } from '~/actions';
 
 const { addCardToZone } = useZone();
 const state = reactive({ deck: [] as Card[] });
 
-enum CardEventName {
-  LOAD_DECK = 'load_deck',
-}
-
 // @ts-ignore
 window.state.deck = state;
 
-const shuffler = curry((random: any, list: any[]) => {
-  let idx = -1;
-  let position;
-  let result = [] as any[];
-  while (++idx < list.length) {
-    position = Math.floor((idx + 1) * random());
-    result[idx] = result[position];
-    result[position] = list[idx];
-  }
-  return result;
-});
-
-const shuffle = shuffler(Math.random);
-
 async function loadDeck(deckName: string) {
-  const foundDeck = await invoke<any[]>(CardEventName.LOAD_DECK, { deck_name: deckName });
+  const { loadDeck: loadTauriDeck } = useTauri();
 
-  state.deck = shuffle(foundDeck.map((item: any) => toModel(item))) as Card[];
+  state.deck = await loadTauriDeck(deckName);
+
+  DeckActions.shuffleDeck();
 
   state.deck.forEach((card) => addCardToZone(ZoneType.deck, card));
 }
 
 function getDeck() {
   return computed(() => state.deck);
+}
+
+function setDeck(deck: Card[]) {
+  state.deck = deck;
 }
 
 function drawXCards(x: number) {
@@ -50,29 +37,8 @@ function drawXCards(x: number) {
   xCards.forEach((card) => moveCard(ZoneType.deck, ZoneType.hand, card));
 }
 
-export function useDeck() {
-  return { loadDeck, getDeck, drawXCards };
-}
 
-function toModel(item: any): Card {
-  return {
-    name: item.name,
-    manaCost: convertPips(item['mana_cost']),
-    manaValue: item['mana_value'],
-    convertedManaCost: item['converted_mana_cost'],
-    power: item.power,
-    toughness: item.toughness,
-    cardTypes: item['card_types'].split(','),
-    subTypes: item['sub_types'].split(','),
-    setCode: item['set_code'],
-    printings: item['printings'].split(','),
-    layout: item['layout'],
-    keywords: item['keywords'].split(','),
-    flavorText: item.flavor_text,
-    colorIdentity: item['color_identity'].split(',').map(toCardColor),
-    colors: item.colors.split(',').map(toCardColor),
-    imagePath: `https://card.${item.set_code}/${item.meta.scryfall_id}.png`,
-    cardId: uuidv4(),
-    position: { x: 0, y: 30 },
-  };
+
+export function useDeck() {
+  return { loadDeck, getDeck, drawXCards, setDeck };
 }

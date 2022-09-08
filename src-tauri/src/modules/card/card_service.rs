@@ -4,7 +4,6 @@ extern crate reqwest;
 use crate::modules::card::card_types::{Card, CardMeta};
 use crate::modules::database::db::GLOBAL_CONNECTION;
 
-use log::info;
 use rusqlite::{Error, Row};
 use serde::Serialize;
 use std::collections::HashMap;
@@ -135,6 +134,7 @@ impl CardService {
                 scryfall_id: row.get(16).unwrap_or("".to_string()),
                 scryfall_illustration_id: row.get(17).unwrap_or("".to_string()),
                 uuid: row.get(18).unwrap_or("".to_string()),
+                is_token: false,
             },
         })
     }

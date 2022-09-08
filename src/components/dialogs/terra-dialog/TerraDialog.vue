@@ -22,10 +22,14 @@ export default defineComponent({
     const showDialog = ref(props.show);
     const close = () => {
       showDialog.value = false;
-      ctx.emit('close');
+      ctx.emit('close', { type: 'selected' });
+    };
+    const cancel = () => {
+      showDialog.value = false;
+      ctx.emit('close', { type: 'canceled' });
     };
 
-    return { showDialog, close };
+    return { showDialog, close, cancel };
   },
   methods: {
     onScroll() {
@@ -34,12 +38,12 @@ export default defineComponent({
   },
   render() {
     return (
-      <transition class="terra-dialog" name="modal-fade" v-show={this.showDialog}>
+      <div class="terra-dialog" name="modal-fade" v-show={this.showDialog}>
         <div class="modal-backdrop">
           <div class="modal" role="dialog" aria-labelledby="modalTitle" aria-describedby="modalDescription">
             <header class="modal-header" id="modalTitle">
               {this.$slots?.['header']?.() ?? <div></div>}
-              <button type="button" class="btn-close" onClick={this.close} aria-label="Close modal">
+              <button type="button" class="btn-close" onClick={this.cancel} aria-label="Close modal">
                 x
               </button>
             </header>
@@ -49,14 +53,15 @@ export default defineComponent({
             </section>
 
             <footer class="modal-footer">
-              {this.$slots?.['footer']?.() ?? <div></div>}
-              <button type="button" class="btn-green" onClick={this.close} aria-label="Close modal">
-                Close me!
-              </button>
+              {this.$slots?.['footer']?.({ close: this.close, cancel: this.cancel }) ?? (
+                <button type="button" class="btn-green" onClick={this.close} aria-label="Close modal">
+                  Close me!
+                </button>
+              )}
             </footer>
           </div>
         </div>
-      </transition>
+      </div>
     );
   },
 });

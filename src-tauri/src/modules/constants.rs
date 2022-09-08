@@ -10,3 +10,7 @@ pub fn cards_location() -> PathBuf {
 pub fn database_location() -> PathBuf {
     [document_dir().unwrap().to_str().unwrap(), "terrapin", "database", "AllPrintings.sqlite"].iter().collect()
 }
+
+pub fn tokens_location() -> PathBuf {
+    [document_dir().unwrap().to_str().unwrap(), "terrapin", "tokens"].iter().collect()
+}

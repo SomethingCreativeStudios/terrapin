@@ -21,6 +21,11 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
   },
   setup(props, ctx) {
     const { cardClass, draggable, onTap, onCardClick, onCardHover } = setUpCard(props.card, props.containerType, ctx);
@@ -34,7 +39,7 @@ export default defineComponent({
   },
   render() {
     return (
-      <div ref="draggable" class={this.cardClass} onClick={this.onCardClick} onDblclick={this.onTap} onMouseenter={this.onCardHover}>
+      <div ref="draggable" class={{ ...this.cardClass, 'terra-card--disabled': this.disabled }} onClick={this.onCardClick} onDblclick={this.onTap} onMouseenter={this.onCardHover}>
         <img class="terra-card__image" src={this.cardImage} />
       </div>
     );
@@ -53,6 +58,11 @@ $card-height: 170px;
   position: absolute;
 
   z-index: 100;
+}
+
+.terra-card--disabled:not(.selected) {
+  pointer-events: none;
+  opacity: 0.5;
 }
 
 .terra-card__tapped {

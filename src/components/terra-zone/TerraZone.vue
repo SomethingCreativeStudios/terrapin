@@ -55,7 +55,7 @@ export default defineComponent({
     ) : null;
 
     const zoneHeader = (
-      <div class="terra-zone__header" oncontextmenu={this.onContextMenu}>
+      <div class="terra-zone__header" onClick={this.onContextMenu}>
         <div class="terra-zone__header--title">
           {this.name} ({this.zone.cards.length})
         </div>

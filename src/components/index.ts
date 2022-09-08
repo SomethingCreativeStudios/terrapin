@@ -1,7 +1,8 @@
 import TerraCard from './terra-card';
 import TerraZone from './terra-zone';
 import TerraHoverCard from './terra-hover-card';
-import TerraDialog from './terra-dialog';
-import TerraCardDialog from './terra-card-dialog';
+import { TerraActionBar } from './terra-action-bar';
+import LifeTracker from './life-tracker';
+export * from './dialogs';
 
-export { TerraCard, TerraCardDialog, TerraDialog, TerraHoverCard, TerraZone };
+export { TerraCard, LifeTracker, TerraHoverCard, TerraZone, TerraActionBar };

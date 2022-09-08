@@ -1,7 +1,7 @@
 import { computed, reactive } from 'vue';
 import { debounce } from 'debounce';
 import { Card, CardPosition } from '~/models/card.model';
-import { useEvents } from '~/composables/useEvents';
+import { useEvents, useTauri } from '~/composables';
 import { useZone } from './useZone';
 
 const { onEvent, emitEvent } = useEvents();
@@ -19,12 +19,17 @@ export interface CardPositionEvent {
   position: CardPosition;
 }
 
-const state = reactive({ hoveredCard: {} as Card });
+const state = reactive({ hoveredCard: {} as Card, tokens: [] as Card[] });
 
 // @ts-ignore
 window.state.card = state;
 
-function setUp() {}
+async function setUp() {
+  const { loadTokens } = useTauri();
+  state.tokens = await loadTokens();
+
+  setUpHoverEvents();
+}
 
 function setUpHoverEvents() {
   document.onmousemove = debounce((ev: any) => {
@@ -39,15 +44,17 @@ function setUpHoverEvents() {
         // @ts-ignore
         state.hoveredCard = card.__vue__.card;
       }
+    } else if (state.hoveredCard.cardId) {
+      clearHoveredCard();
     }
-  }, 500);
+  }, 250);
 
   document.ondblclick = (ev) => {
     const els = document.elementsFromPoint(ev.x, ev.y);
     const card = els.find((el) => el.classList.contains('terra-card'));
 
     if (!card) {
-      state.hoveredCard = {} as Card;
+      clearHoveredCard()
     }
   };
 }
@@ -66,6 +73,10 @@ function onPositionUpdate(cardId: string, cb: (position: CardPosition) => void) 
       cb(data.position);
     }
   });
+}
+
+function clearHoveredCard() {
+  state.hoveredCard = {} as Card;
 }
 export function useCard() {
   return { setUp, getHoveredCard, onPositionUpdate, updatePosition, setUpHoverEvents };

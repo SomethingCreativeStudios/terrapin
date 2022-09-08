@@ -21,6 +21,12 @@ pub struct DownloadService {}
 
 impl DownloadService {
     pub fn download_all_cards() -> DownloadCollection {
+        let cards = CardService::find_all_cards();
+
+        DownloadService::download_cards(cards)
+    }
+
+    pub fn download_cards(cards: Vec<Card>) -> DownloadCollection {
         let files = glob(cards_location().join("**").join("*.png").to_str().unwrap()).unwrap();
 
         let mut skip_list: HashMap<String, String> = HashMap::new();
@@ -29,8 +35,6 @@ impl DownloadService {
             let part = path.as_ref().unwrap().file_name().unwrap().to_str().unwrap().to_string();
             skip_list.insert(part, "".to_string());
         }
-
-        let cards = CardService::find_all_cards();
 
         DownloadService::parallel_download(20, &cards, &skip_list)
     }
@@ -59,7 +63,7 @@ impl DownloadService {
         }
     }
 
-    fn parallel_download(thread_count: usize, cards: &Vec<Card>, skip_list: &HashMap<String, String>) -> DownloadCollection {
+    pub fn parallel_download(thread_count: usize, cards: &Vec<Card>, skip_list: &HashMap<String, String>) -> DownloadCollection {
         let (tx, rx) = mpsc::channel::<CardDownload>();
         let mut filtered_cards = DownloadService::filter_cards(cards, skip_list, &tx);
 

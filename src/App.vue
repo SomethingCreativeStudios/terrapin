@@ -1,26 +1,37 @@
 <script lang="tsx">
-import { defineComponent, ref } from 'vue';
-import { TerraCard, TerraZone, TerraHoverCard, TerraCardDialog } from './components';
-import { useDeck, useCard, useHotKey, useZone } from '~/composables';
+import { defineComponent } from 'vue';
+import { TerraCard, TerraZone, TerraHoverCard, TerraCardDialog, TerraActionBar, TerraPromptDialog, LifeTracker } from './components';
+import { useDeck, useCard, useHotKey, useDialog } from '~/composables';
 import { ContainerType, ZoneType } from './models/zone.model';
+
+const dialogComponents = {
+  'terra-card-dialog': TerraCardDialog,
+  'terra-prompt-dialog': TerraPromptDialog,
+};
 
 export default defineComponent({
   name: 'app',
-  components: { TerraCard, TerraZone, TerraHoverCard, TerraCardDialog },
+  components: { TerraCard, TerraZone, TerraHoverCard, TerraCardDialog, TerraActionBar, LifeTracker },
   setup() {
     const { getDeck, loadDeck } = useDeck();
-    const { setUpHoverEvents } = useCard();
+    const { setUp } = useCard();
     const { setUpHotKeys } = useHotKey();
-    const { getCardsInZone } = useZone();
+    const { getActiveDialogs } = useDialog();
 
     setUpHotKeys();
-    setUpHoverEvents();
+    setUp();
     loadDeck('');
 
-    return { deck: getDeck(), cards: getCardsInZone(ZoneType.deck) };
+    return { deck: getDeck(), dialogs: getActiveDialogs() };
   },
 
   render() {
+    const dialogBlocks = this.dialogs.map((dialog) => {
+      // @ts-ignore
+      const Component = dialogComponents[dialog.dialog];
+      return <Component dialog={dialog} />;
+    });
+
     return (
       <div class="play-mat">
         <terra-zone class="zone-battlefield" name={ZoneType.battlefield} color={`#2c2c2c`}>
@@ -30,8 +41,9 @@ export default defineComponent({
         <terra-zone class="zone-deck" name={ZoneType.deck} containerType={ContainerType.TOP_CARD} color={`#3c3b3b`} disableHover={true}></terra-zone>
         <terra-zone class="zone-graveyard" name={ZoneType.graveyard} containerType={ContainerType.TOP_CARD} color={`#3c3b3b`} disableHover={true}></terra-zone>
         <terra-zone class="zone-exile" name={ZoneType.exile} containerType={ContainerType.TOP_CARD} color={`#3c3b3b`} disableHover={true}></terra-zone>
-
-        <terra-card-dialog width="60%" height="80%" cards={this.cards}></terra-card-dialog>
+        <terra-action-bar class="zone-action"></terra-action-bar>
+        {dialogBlocks}
+        <life-tracker class="life-tracker"></life-tracker>
       </div>
     );
   },
@@ -51,14 +63,20 @@ export default defineComponent({
 .play-mat {
   display: grid;
   grid-template-areas:
-    'battlefield battlefield battlefield battlefield battlefield'
-    'hand        hand        deck        graveyard   exile';
+    'action battlefield battlefield battlefield battlefield battlefield'
+    'hand   hand        hand        deck        graveyard   exile';
 
-  grid-template-columns: 1fr 1fr 150px 143px 150px;
+  grid-template-columns: 240px 1fr 1fr 150px 143px 150px;
   grid-template-rows: 1fr 230px;
 
   height: 100%;
   width: 100%;
+}
+
+.life-tracker {
+  position: absolute;
+  left: 270px;
+  top: 18px;
 }
 
 .zone-battlefield {
@@ -76,6 +94,10 @@ export default defineComponent({
 
 .zone-hand {
   grid-area: hand;
+}
+
+.zone-action {
+  grid-area: action;
 }
 
 .zone-deck {
