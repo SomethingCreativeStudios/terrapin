@@ -1,6 +1,6 @@
 <script lang="tsx">
 import { defineComponent } from 'vue';
-import { TrackerAction } from '~/actions';
+import { TrackerActions } from '~/actions';
 import { useGameState } from '~/composables';
 
 export default defineComponent({
@@ -15,11 +15,11 @@ export default defineComponent({
   render() {
     return (
       <div class="life-tracker">
-        <div class="life-tracker__button" onClick={() => TrackerAction.takeDamage(1)}>
+        <div class="life-tracker__button" onClick={() => TrackerActions.takeDamage(1)}>
           -
         </div>
         <div class="life-tracker__life">{this.lifeCount}</div>
-        <div class="life-tracker__button" onClick={() => TrackerAction.gainLife(1)}>
+        <div class="life-tracker__button" onClick={() => TrackerActions.gainLife(1)}>
           +
         </div>
       </div>

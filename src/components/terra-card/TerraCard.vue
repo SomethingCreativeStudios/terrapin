@@ -2,7 +2,8 @@
 import { defineComponent, PropType, computed } from 'vue';
 import { setUpCard } from './composables/useTerraCard';
 import { Card } from '~/models/card.model';
-import { ContainerType } from '~/models/zone.model';
+import { ContainerType, ZoneType } from '~/models/zone.model';
+import { useMenu } from '~/composables';
 
 export default defineComponent({
   name: 'terra-card',
@@ -37,9 +38,23 @@ export default defineComponent({
 
     return { draggable, cardClass, cardImage, onTap, onCardClick, onCardHover };
   },
+  methods: {
+    onContextMenu(e: MouseEvent) {
+      e.preventDefault();
+      const { getCardMenu } = useMenu();
+      this.$contextmenu(getCardMenu(this.card, { x: e.x, y: e.y }) as any);
+    },
+  },
   render() {
     return (
-      <div ref="draggable" class={{ ...this.cardClass, 'terra-card--disabled': this.disabled }} onClick={this.onCardClick} onDblclick={this.onTap} onMouseenter={this.onCardHover}>
+      <div
+        ref="draggable"
+        class={{ ...this.cardClass, 'terra-card--disabled': this.disabled }}
+        onClick={this.onCardClick}
+        onContextmenu={this.onContextMenu}
+        onDblclick={this.onTap}
+        onMouseenter={this.onCardHover}
+      >
         <img class="terra-card__image" src={this.cardImage} />
       </div>
     );

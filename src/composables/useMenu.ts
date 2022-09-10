@@ -2,7 +2,7 @@ import { Card, CardPosition } from '~/models/card.model';
 import { ZoneType } from '~/models/zone.model';
 import { useDeck, useDialog, useZone } from '~/composables';
 import { startMulligan } from '~/states';
-import { HandActions, DeckActions } from '~/actions';
+import { HandActions, DeckActions, BattlefieldActions } from '~/actions';
 import { NumberPromptDialogModel } from '~/models/dialog.model';
 import { Ref } from 'vue';
 
@@ -41,15 +41,48 @@ function getMenu(zoneType: ZoneType, position: CardPosition) {
     return buildExileMenu(position);
   }
 
+  if (zoneType === ZoneType.battlefield) {
+    return buildBattlefieldMenu(position);
+  }
 
   if (zoneType === ZoneType.hand) {
     return buildHandMenu(position);
   }
 }
 
+function getCardMenu(card: Card, position: CardPosition) {
+  const { findZoneNameFromCard } = useZone();
+  const zoneType = findZoneNameFromCard(card);
+
+  if (zoneType === ZoneType.hand) {
+    return buildCardHandMenu(card, position);
+  }
+}
+
 
 export function useMenu() {
-  return { getMenu, buildMoveMenu };
+  return { getMenu, getCardMenu, buildMoveMenu };
+}
+
+
+function buildCardHandMenu(card: Card, position: CardPosition): MenuOptions {
+
+  return {
+    iconFontClass: 'iconfont',
+    customClass: 'graveyard-menu',
+    minWidth: 150,
+    x: position.x,
+    y: position.y,
+    zIndex: 10000,
+    items: [
+      {
+        label: card.cardTypes.includes("Land") ? 'Play' : 'Cast',
+        onClick: async () => {
+          BattlefieldActions.untapAll();
+        },
+      },
+    ],
+  };
 }
 
 // Build generic move dialog (ignore current zone)
@@ -76,6 +109,25 @@ function buildMoveMenu(fromZone: ZoneType, position: CardPosition, cards: Card[]
     y: position.y,
     zIndex: 10000,
     items,
+  };
+}
+
+function buildBattlefieldMenu(position: CardPosition): MenuOptions {
+  return {
+    iconFontClass: 'iconfont',
+    customClass: 'hand-menu',
+    minWidth: 150,
+    x: position.x,
+    y: position.y,
+    zIndex: 10000,
+    items: [
+      {
+        label: 'Untap All',
+        onClick: async () => {
+          BattlefieldActions.untapAll();
+        },
+      },
+    ],
   };
 }
 

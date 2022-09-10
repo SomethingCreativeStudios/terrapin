@@ -15,10 +15,9 @@ async function loadDeck(deckName: string) {
   const { loadDeck: loadTauriDeck } = useTauri();
 
   state.deck = await loadTauriDeck(deckName);
+  state.deck.forEach((card) => addCardToZone(ZoneType.deck, card));
 
   DeckActions.shuffleDeck();
-
-  state.deck.forEach((card) => addCardToZone(ZoneType.deck, card));
 }
 
 function getDeck() {

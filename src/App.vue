@@ -1,6 +1,6 @@
 <script lang="tsx">
 import { defineComponent } from 'vue';
-import { TerraCard, TerraZone, TerraHoverCard, TerraCardDialog, TerraActionBar, TerraPromptDialog, LifeTracker } from './components';
+import { TerraCard, TerraZone, TerraHoverCard, TerraCardDialog, TerraActionBar, TerraPromptDialog, LifeTracker, ManaTracker } from './components';
 import { useDeck, useCard, useHotKey, useDialog } from '~/composables';
 import { ContainerType, ZoneType } from './models/zone.model';
 
@@ -11,7 +11,7 @@ const dialogComponents = {
 
 export default defineComponent({
   name: 'app',
-  components: { TerraCard, TerraZone, TerraHoverCard, TerraCardDialog, TerraActionBar, LifeTracker },
+  components: { TerraCard, TerraZone, TerraHoverCard, TerraCardDialog, TerraActionBar, LifeTracker, ManaTracker },
   setup() {
     const { getDeck, loadDeck } = useDeck();
     const { setUp } = useCard();
@@ -36,6 +36,7 @@ export default defineComponent({
       <div class="play-mat">
         <terra-zone class="zone-battlefield" name={ZoneType.battlefield} color={`#2c2c2c`}>
           <terra-hover-card></terra-hover-card>
+          <mana-tracker class="mana-tracker"></mana-tracker>
         </terra-zone>
         <terra-zone class="zone-hand" name={ZoneType.hand} containerType={ContainerType.SORTABLE} color={`#2e2e2e`}></terra-zone>
         <terra-zone class="zone-deck" name={ZoneType.deck} containerType={ContainerType.TOP_CARD} color={`#3c3b3b`} disableHover={true}></terra-zone>
@@ -77,6 +78,12 @@ export default defineComponent({
   position: absolute;
   left: 270px;
   top: 18px;
+}
+
+.mana-tracker {
+  position: absolute;
+  left: 14px;
+  bottom: 18px;
 }
 
 .zone-battlefield {

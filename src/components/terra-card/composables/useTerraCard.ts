@@ -59,6 +59,20 @@ function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents
 
     onTap(cardState, containerType);
   });
+
+  onEvent(CardBusEventName.TAP_CARD, ({ ids }: { ids: string[] }) => {
+    if (containerType !== ContainerType.FREE_POSITION) return;
+    if (!ids.includes(cardId)) return;
+
+    cardState.value = 'tapped';
+  });
+
+  onEvent(CardBusEventName.UNTAP_CARD, ({ ids }: { ids: string[] }) => {
+    if (containerType !== ContainerType.FREE_POSITION) return;
+    if (!ids.includes(cardId)) return;
+
+    cardState.value = 'untapped';
+  });
 }
 
 function onTap(cardState: Ref<string>, containerType: ContainerType) {

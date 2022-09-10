@@ -25,8 +25,7 @@ export function addMana(manaType: ManaType, amountOfMana = 1) {
     const { getFloatingMana, setFloatingMana } = useGameState();
     const currentFloating = getFloatingMana().value;
 
-    currentFloating[manaType] += amountOfMana;
-    setFloatingMana(currentFloating);
+    setFloatingMana({ ...currentFloating, [manaType]: (currentFloating[manaType] ?? 0) + 1 });
 }
 
 export function useMana(manaType: ManaType, amountOfMana = 1) {
@@ -34,7 +33,7 @@ export function useMana(manaType: ManaType, amountOfMana = 1) {
     const currentFloating = getFloatingMana().value;
 
     /// never go negative!!!
-    currentFloating[manaType] = Math.max(currentFloating[manaType] - amountOfMana, 0);
+    currentFloating[manaType] = Math.max((currentFloating[manaType] ?? 0) - amountOfMana, 0);
     setFloatingMana(currentFloating);
 }
 

@@ -11,6 +11,8 @@ export enum CardBusEventName {
   POSITION_OFFSET_UPDATE = 'position-offset-update',
   POSITION_UPDATE = 'position-update',
   TOGGLE_TAP_CARD = 'toggle-tap-card',
+  TAP_CARD = 'tap-card',
+  UNTAP_CARD = 'untap-card',
   STACK_CARDS = 'stack-card',
   LINE_CARDS = 'line-card',
 }
@@ -75,9 +77,17 @@ function onPositionUpdate(cardId: string, cb: (position: CardPosition) => void) 
   });
 }
 
+function tapOrUntapCard(ids: string[], tap = true) {
+  if (tap) {
+    emitEvent(CardBusEventName.TAP_CARD, { ids });
+  } else {
+    emitEvent(CardBusEventName.UNTAP_CARD, { ids });
+  }
+}
+
 function clearHoveredCard() {
   state.hoveredCard = {} as Card;
 }
 export function useCard() {
-  return { setUp, getHoveredCard, onPositionUpdate, updatePosition, setUpHoverEvents };
+  return { setUp, getHoveredCard, tapOrUntapCard, onPositionUpdate, updatePosition, setUpHoverEvents };
 }
