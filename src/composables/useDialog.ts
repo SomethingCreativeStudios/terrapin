@@ -38,7 +38,7 @@ function promptUser(prompt: PromptDialogModel) {
         const dialogId = `dialog-${uuidv4()}`;
         const { onEvent } = useEvents();
 
-        state.dialogs.push({ title: 'Prompt', width: '25%', height: '20%', ...prompt, dialog: 'terra-prompt-dialog', eventId: dialogId });
+        state.dialogs.push({ title: 'Prompt', width: '25%', height: '23%', ...prompt, dialog: 'terra-prompt-dialog', eventId: dialogId });
 
         // clean up!!!!
         onEvent(dialogId, ({ response }: { response: any }) => {

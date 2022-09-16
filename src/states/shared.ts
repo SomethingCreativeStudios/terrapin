@@ -20,6 +20,7 @@ export function getTransitionState<T>(state: StateContext<T>) {
 export function setUpTransitions<T>(service: StateInterrupter<T>, callMap: TransitionFunc<T>) {
     service.onTransition(state => {
         const stateTransition = getTransitionState(state);
+        console.log(stateTransition);
         if (callMap[stateTransition]) {
             callMap[stateTransition](state, service);
         }

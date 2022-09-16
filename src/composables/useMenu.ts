@@ -58,14 +58,11 @@ function getCardMenu(card: Card, position: CardPosition) {
   }
 }
 
-
 export function useMenu() {
   return { getMenu, getCardMenu, buildMoveMenu };
 }
 
-
 function buildCardHandMenu(card: Card, position: CardPosition): MenuOptions {
-
   return {
     iconFontClass: 'iconfont',
     customClass: 'graveyard-menu',
@@ -75,7 +72,7 @@ function buildCardHandMenu(card: Card, position: CardPosition): MenuOptions {
     zIndex: 10000,
     items: [
       {
-        label: card.cardTypes.includes("Land") ? 'Play' : 'Cast',
+        label: card.cardTypes.includes('Land') ? 'Play' : 'Cast',
         onClick: async () => {
           castSpell(card);
         },
@@ -93,10 +90,11 @@ function buildMoveMenu(fromZone: ZoneType, position: CardPosition, cards: Card[]
     if (toZone === fromZone) return acc;
 
     return acc.concat({
-      label: `Move to ${toZone}`, onClick: () => {
-        cards.map(card => moveCard(fromZone, toZone as ZoneType, card))
+      label: `Move to ${toZone}`,
+      onClick: () => {
+        cards.map((card) => moveCard(fromZone, toZone as ZoneType, card));
         onSelected?.(toZone);
-      }
+      },
     });
   }, [] as MenuOption[]);
 
@@ -163,9 +161,7 @@ function buildExileMenu(position: CardPosition): MenuOptions {
     x: position.x,
     y: position.y,
     zIndex: 10000,
-    items: [
-      viewAll(ZoneType.exile)
-    ],
+    items: [viewAll(ZoneType.exile)],
   };
 }
 
@@ -177,9 +173,7 @@ function buildGraveyardMenu(position: CardPosition): MenuOptions {
     x: position.x,
     y: position.y,
     zIndex: 10000,
-    items: [
-      viewAll(ZoneType.graveyard)
-    ],
+    items: [viewAll(ZoneType.graveyard)],
   };
 }
 
@@ -238,5 +232,5 @@ function viewAll(zone: ZoneType, canShuffle = false) {
       const cards = getCardsInZone(zone);
       selectFrom({ cards: cards.value, canMove: true, currentZone: zone, showShuffle: canShuffle });
     },
-  }
+  };
 }

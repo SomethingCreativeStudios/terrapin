@@ -42,6 +42,7 @@ export default defineComponent({
     onContextMenu(e: MouseEvent) {
       e.preventDefault();
       const { getCardMenu } = useMenu();
+
       this.$contextmenu(getCardMenu(this.card, { x: e.x, y: e.y }) as any);
     },
   },

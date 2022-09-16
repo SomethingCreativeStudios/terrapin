@@ -24,7 +24,10 @@ impl TokenService {
 
     pub fn get_tokens() -> Vec<Card> {
         info!("{}", tokens_location().join("tokens.json").to_str().ok_or("err").unwrap());
-        let str_data = std::fs::read_to_string(tokens_location().join("tokens.json")).unwrap();
+        fs::create_dir_all(tokens_location().to_str().unwrap()).unwrap_or_else(|_err| error!("Could not create dir for tokens"));
+
+        let str_data = std::fs::read_to_string(tokens_location().join("tokens.json")).unwrap_or("[]".to_string());
+
         let token_cards: Vec<TokenCardResponse> = serde_json::from_str(str_data.as_str()).unwrap();
 
         TokenService::map_tokens(token_cards)

@@ -10,6 +10,8 @@ const state = reactive({ zones: {} as Record<string, Zone> });
 window.state.zone = state;
 
 function addCardToZone(zone: ZoneType, card: Card) {
+  if (state.zones[zone].cards.find((zCard) => zCard.cardId === card.cardId)) return;
+
   state.zones[zone].cards.push(card);
 }
 
@@ -161,11 +163,23 @@ function getCardsInZone(zone: ZoneType) {
 }
 
 function setCardsInZone(zone: ZoneType, cards: Card[]) {
-  state.zones[zone].cards = cards
+  state.zones[zone].cards = cards;
 }
 
 export function useZone() {
-  return { addZone, getCardsInZone, setCardsInZone, moveCard, addCardToZone, reorderCards, dragDropCard, findZoneNameFromCard, findZoneFromCard, findOtherSelectedByCard, updateSelected };
+  return {
+    addZone,
+    getCardsInZone,
+    setCardsInZone,
+    moveCard,
+    addCardToZone,
+    reorderCards,
+    dragDropCard,
+    findZoneNameFromCard,
+    findZoneFromCard,
+    findOtherSelectedByCard,
+    updateSelected,
+  };
 }
 
 function getCard(element: HTMLElement): Card {
