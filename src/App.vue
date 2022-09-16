@@ -1,7 +1,7 @@
 <script lang="tsx">
 import { defineComponent } from 'vue';
 import { TerraCard, TerraZone, TerraHoverCard, TerraCardDialog, TerraActionBar, TerraPromptDialog, LifeTracker, ManaTracker } from './components';
-import { useDeck, useCard, useHotKey, useDialog } from '~/composables';
+import { useDeck, useCard, useHotKey, useDialog, useZone } from '~/composables';
 import { ContainerType, ZoneType } from './models/zone.model';
 
 const dialogComponents = {
@@ -15,12 +15,14 @@ export default defineComponent({
   setup() {
     const { getDeck, loadDeck } = useDeck();
     const { setUp } = useCard();
+    const { addZone } = useZone();
     const { setUpHotKeys } = useHotKey();
     const { getActiveDialogs } = useDialog();
 
     setUpHotKeys();
     setUp();
     loadDeck('');
+    addZone(ZoneType.stack, ContainerType.CARD_DIALOG, true);
 
     return { deck: getDeck(), dialogs: getActiveDialogs() };
   },

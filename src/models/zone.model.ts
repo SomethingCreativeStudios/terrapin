@@ -29,4 +29,5 @@ export enum ZoneType {
   battlefield = 'Battlefield',
   graveyard = 'Graveyard',
   exile = 'Exile',
+  stack = 'Stack'
 }

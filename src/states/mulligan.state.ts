@@ -107,7 +107,7 @@ async function onSendBack(state: StateContext<MulliganContext>, service: StateIn
     const numberOfMulligans = state.context.count;
     const cardsInHand = getCardsInZone(ZoneType.hand);
 
-    HandActions.sendToBottom(await selectFrom({ cards: cardsInHand.value, height: '371px', title: `Pick ${numberOfMulligans} to send back: `, min: numberOfMulligans, max: numberOfMulligans }));
+    HandActions.sendToBottom(await selectFrom({ cards: cardsInHand.value, currentZone: ZoneType.hand, height: '371px', title: `Pick ${numberOfMulligans} to send back: `, min: numberOfMulligans, max: numberOfMulligans }));
 
     service.send(MulliganSteps.SEND_BACK__NEXT);
 }

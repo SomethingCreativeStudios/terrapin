@@ -1,10 +1,9 @@
 import { Card, CardPosition } from '~/models/card.model';
 import { ZoneType } from '~/models/zone.model';
 import { useDeck, useDialog, useZone } from '~/composables';
-import { startMulligan } from '~/states';
+import { startMulligan, castSpell } from '~/states';
 import { HandActions, DeckActions, BattlefieldActions } from '~/actions';
 import { NumberPromptDialogModel } from '~/models/dialog.model';
-import { Ref } from 'vue';
 
 interface MenuOptions {
   items: MenuOption[];
@@ -78,7 +77,7 @@ function buildCardHandMenu(card: Card, position: CardPosition): MenuOptions {
       {
         label: card.cardTypes.includes("Land") ? 'Play' : 'Cast',
         onClick: async () => {
-          BattlefieldActions.untapAll();
+          castSpell(card);
         },
       },
     ],
