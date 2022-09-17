@@ -1,18 +1,20 @@
 <script lang="tsx">
-import { defineComponent, reactive, toRefs } from 'vue';
+import { ComputedRef, defineComponent, reactive, toRefs } from 'vue';
 import { useEvents, DialogEvents } from '~/composables';
+import InputButton from '../input-button';
 
 export default defineComponent({
   name: 'input-block',
-  components: {},
+  components: { InputButton },
   props: {},
   setup() {
-    const state = reactive({ question: '', choices: [] });
+    const state = reactive({ question: '', choices: [], validators: {} as Record<string, () => ComputedRef<boolean>> });
     const { onEvent, emitEvent } = useEvents();
 
-    onEvent(DialogEvents.PROMPT, ({ question, choices }) => {
+    onEvent(DialogEvents.PROMPT, ({ question, choices, validators }) => {
       state.choices = choices;
       state.question = question;
+      state.validators = validators;
     });
 
     function onClick(choice: string) {
@@ -33,9 +35,8 @@ export default defineComponent({
         <div class="input-block__question" v-html={this.question}></div>
         <div class="input-block__choices">
           {this.choices.map((choice) => (
-            <button class="input-block__choice" onClick={() => this.onClick(choice)}>
-              {choice}
-            </button>
+            //@ts-ignore
+            <input-button class="input-block__choice" onClick={() => this.onClick(choice)} choice={choice} validator={this.validators?.[choice]}></input-button>
           ))}
         </div>
       </div>

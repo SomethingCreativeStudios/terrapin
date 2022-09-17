@@ -166,6 +166,10 @@ function setCardsInZone(zone: ZoneType, cards: Card[]) {
   state.zones[zone].cards = cards;
 }
 
+function removeCardInZone(zone: ZoneType, card: Card) {
+  state.zones[zone].cards = state.zones[zone].cards.filter(zCard => zCard.cardId !== card.cardId);
+}
+
 export function useZone() {
   return {
     addZone,
@@ -179,6 +183,7 @@ export function useZone() {
     findZoneFromCard,
     findOtherSelectedByCard,
     updateSelected,
+    removeCardInZone
   };
 }
 

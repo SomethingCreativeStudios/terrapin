@@ -86,6 +86,11 @@ export default defineComponent({
   position: relative;
 }
 
+.terra-zone.disabled {
+  pointer-events: none;
+  opacity: 0.75;
+}
+
 .terra-zone__header {
   position: absolute;
   color: #f1e8e8;

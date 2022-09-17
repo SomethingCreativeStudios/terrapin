@@ -1,7 +1,27 @@
 import { computed, reactive } from "vue";
 import { ManaType } from "~/models/card.model";
 
-const state = reactive({ lifeCount: 20, floatingMana: {} as Record<ManaType, number> });
+export enum UserAction {
+    NOTHING = 'nothing',
+    PAYING_MANA = 'paying-mana',
+    MULLIGAN = 'mulligan',
+    PICKING_TARGETS = 'picking_targets'
+}
+
+const state = reactive({ lifeCount: 20, floatingMana: {} as Record<ManaType, number>, usedMana: {} as Record<ManaType, number>, currentUserAction: UserAction.NOTHING });
+
+function setUp() {
+    document.body.setAttribute('user-action', state.currentUserAction);
+}
+
+function getUserAction() {
+    return computed(() => state.currentUserAction);
+}
+
+function setUserAction(userAction: UserAction) {
+    state.currentUserAction = userAction;
+    document.body.setAttribute('user-action', state.currentUserAction);
+}
 
 function getLifeTotal() {
     return computed(() => state.lifeCount);
@@ -19,6 +39,18 @@ function getFloatingMana() {
     return computed(() => state.floatingMana);
 }
 
+function setUsedMana(mana: Record<ManaType, number>) {
+    state.usedMana = mana;
+}
+
+function getUsedMana() {
+    return computed(() => state.usedMana);
+}
+
+function getManaOffset(color: ManaType) {
+    return computed(() => (state.floatingMana[color] || 0) - (state.usedMana[color] || 0));
+}
+
 export function useGameState() {
-    return { setLifeTotal, getLifeTotal, setFloatingMana, getFloatingMana }
+    return { setUp, setLifeTotal, getLifeTotal, setFloatingMana, getFloatingMana, getUserAction, setUserAction, setUsedMana, getUsedMana, getManaOffset }
 }

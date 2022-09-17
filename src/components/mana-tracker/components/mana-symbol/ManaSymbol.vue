@@ -1,7 +1,7 @@
 <script lang="tsx">
 import { defineComponent, PropType } from 'vue';
 import { ManaType } from '~/models/card.model';
-import { useGameState } from '~/composables';
+import { useGameState, UserAction } from '~/composables';
 import { computed, ref } from '@vue/reactivity';
 import { TrackerActions } from '~/actions';
 
@@ -15,7 +15,8 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const { getFloatingMana } = useGameState();
+    const { getFloatingMana, getUserAction, getManaOffset } = useGameState();
+
     const colorMap = {
       [ManaType.BLACK]: 'black',
       [ManaType.BLUE]: 'blue',
@@ -36,20 +37,37 @@ export default defineComponent({
 
     const selectedColor = ref(colorMap[props.manaType]);
     const shadowColor = ref(shadowColorMap[props.manaType]);
+    const isPayingMana = computed(() => getUserAction().value === UserAction.PAYING_MANA);
 
-    return { selectedColor, shadowColor, count: computed(() => getFloatingMana().value[props.manaType] || 0) };
+    const useMana = () => {
+      if (!isPayingMana.value) return;
+      TrackerActions.spendFloating(props.manaType);
+    };
+
+    return {
+      selectedColor,
+      isPayingMana,
+      shadowColor,
+      useMana,
+      count: computed(() => (isPayingMana.value ? getManaOffset(props.manaType).value : getFloatingMana().value[props.manaType] || 0)),
+    };
   },
 
   render() {
     return (
       <div class={`mana-symbol mana-symbol--${this.count > 0 ? 'has-count' : 'empty'}`}>
-        <div class="mana-symbol--text mana-symbol__remove" onClick={() => TrackerActions.useMana(this.manaType)}>
-          -
-        </div>
-        <div class="mana-symbol--text mana-symbol__add" onClick={() => TrackerActions.addMana(this.manaType)}>
+        {this.isPayingMana ? null : (
+          <div class="mana-symbol--text mana-symbol__remove" onClick={() => TrackerActions.useMana(this.manaType)}>
+            -
+          </div>
+        )}{' '}
+        <div
+          class="mana-symbol--text mana-symbol__add"
+          onClick={() => (this.isPayingMana ? TrackerActions.undoSpentFloating(this.manaType) : TrackerActions.addMana(this.manaType))}
+        >
           +
         </div>
-        <div class="mana-symbol__image">
+        <div class="mana-symbol__image" onClick={this.useMana}>
           <div class="mana-symbol__count">{this.count}</div>
           <img src={`/mana/${this.manaType}.png`} />
         </div>
@@ -119,6 +137,12 @@ export default defineComponent({
 
   .mana-symbol__image img {
     opacity: 0.4;
+  }
+}
+
+[user-action='paying-mana'] {
+  .mana-symbol__image {
+    cursor: pointer;
   }
 }
 </style>

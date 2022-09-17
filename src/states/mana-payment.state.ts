@@ -1,5 +1,6 @@
-import { createMachine, assign, interpret } from 'xstate';
-import { useZone, useDialog } from '~/composables';
+import { createMachine, interpret } from 'xstate';
+import { PaymentActions } from '~/actions';
+import { useZone, useDialog, useGameState, UserAction } from '~/composables';
 import { Card } from '~/models/card.model';
 import { NumberPromptDialogModel } from '~/models/dialog.model';
 import { ZoneType } from '~/models/zone.model';
@@ -128,9 +129,9 @@ function tempNext(_: StateContext<ManaPaymentContext>, service: StateInterrupter
 }
 
 function moveToStack(state: StateContext<ManaPaymentContext>, service: StateInterrupter<ManaPaymentContext>) {
-  const { moveCard } = useZone();
+  const { addCardToZone } = useZone();
 
-  moveCard(ZoneType.hand, ZoneType.stack, state.context.card);
+  addCardToZone(ZoneType.stack, state.context.card);
   service.send(ManaPaymentActions.NEXT);
 }
 
@@ -165,12 +166,30 @@ function resolveTargets(_: StateContext<ManaPaymentContext>, service: StateInter
   service.send(ManaPaymentActions.NEXT);
 }
 
-function payForSpell(_: StateContext<ManaPaymentContext>, service: StateInterrupter<ManaPaymentContext>) {
-  const { moveCard } = useZone();
+async function payForSpell(_: StateContext<ManaPaymentContext>, service: StateInterrupter<ManaPaymentContext>) {
+  const { moveCard, removeCardInZone } = useZone();
+  const { setUserAction } = useGameState();
+  const card = _.context.card;
 
-  moveCard(ZoneType.stack, ZoneType.battlefield, _.context.card);
+  if (card.cardTypes.includes('Land')) {
+    moveCard(ZoneType.hand, ZoneType.battlefield, _.context.card);
+    service.send(ManaPaymentActions.NEXT);
+    return;
+  }
+
+  setUserAction(UserAction.PAYING_MANA);
+
+  const wasPaid = await PaymentActions.wasPaid(card.manaCost);
+
+  if (wasPaid) {
+    moveCard(ZoneType.hand, ZoneType.battlefield, _.context.card);
+  } else {
+    //moveCard(ZoneType.stack, ZoneType.hand, _.context.card);
+  }
 
   service.send(ManaPaymentActions.NEXT);
+  setUserAction(UserAction.NOTHING);
+  removeCardInZone(ZoneType.stack, card);
 }
 
 function makeTransitionString(...args: string[]) {

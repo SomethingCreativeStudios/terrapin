@@ -1,5 +1,5 @@
 
-import { computed, reactive } from 'vue';
+import { computed, ComputedRef, reactive } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 import { Card } from '~/models/card.model';
 import { useEvents } from './useEvents';
@@ -50,11 +50,11 @@ function promptUser(prompt: PromptDialogModel) {
     })
 }
 
-function askQuestion(question: string, choices: string[]): Promise<string> {
+function askQuestion(question: string, choices: string[], validators: Record<string, () => ComputedRef<boolean>> = { }): Promise < string > {
     return new Promise(resolve => {
         const { emitEvent, onEvent } = useEvents();
 
-        emitEvent(DialogEvents.PROMPT, { question, choices });
+        emitEvent(DialogEvents.PROMPT, { question, choices, validators });
         onEvent(`${DialogEvents.PROMPT}-response`, ({ choice }) => resolve(choice))
     })
 }

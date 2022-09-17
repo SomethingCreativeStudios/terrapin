@@ -37,6 +37,32 @@ export function useMana(manaType: ManaType, amountOfMana = 1) {
     setFloatingMana(currentFloating);
 }
 
+export function spendFloating(manaType: ManaType, amountOfMana = 1) {
+    const { getUsedMana, getFloatingMana, setUsedMana } = useGameState();
+
+    const currentFloating = getFloatingMana().value;
+    const currentUsed = getUsedMana().value;
+    currentUsed[manaType] = Math.min((currentUsed[manaType] ?? 0) + amountOfMana, currentFloating[manaType]);
+    setUsedMana(currentUsed);
+}
+
+export function undoSpentFloating(manaType: ManaType, amountOfMana = 1) {
+    const { getUsedMana, setUsedMana } = useGameState();
+
+    const currentUsed = getUsedMana().value;
+    currentUsed[manaType] = Math.max((currentUsed[manaType] ?? 0) - amountOfMana, 0);
+    setUsedMana(currentUsed);
+}
+
+export function clearUsedMana() {
+    const { setUsedMana, getUsedMana } = useGameState();
+
+    const usedMana = { ...getUsedMana().value };
+    setUsedMana({} as any);
+
+    return usedMana;
+}
+
 /**
  * This needs work...
  * Currently will only say you have total mana available, not correct colors
