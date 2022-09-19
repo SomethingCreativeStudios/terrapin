@@ -2,28 +2,36 @@ import { computed } from "vue";
 import { useDialog, useGameState } from "~/composables";
 import { ManaCost } from "~/models/card.model";
 import { TrackerActions } from ".";
-import { meetsCost } from "./helper/mana-cost.helper";
+import { manaPipToString, meetsPip } from "./helper/mana-cost.helper";
 
 export async function wasPaid(manaCost: ManaCost): Promise<boolean> {
     const { askQuestion } = useDialog();
+    const choices = [] as boolean[];
 
-    //Figure out how to use floating mana!!!
+    // Closer...
+    // Subtract costs at each step
+    // Reset used mana
 
-    const choice = await askQuestion('Pay Mana?', ['Done', 'Cancel'], {
-        'Done': () => computed(() => {
-            const { getUsedMana } = useGameState();
-            const used = getUsedMana().value;
-            const total = Object.values(used).reduce((acc, count) => acc + count, 0);
+    for await (const manaPip of manaCost.mana) {
+        const choice = await askQuestion(`Pay Mana? ${manaPipToString(manaPip)}`, ['Done', 'Cancel'], {
+            'Done': () => computed(() => {
+                const { getUsedMana } = useGameState();
+                const used = getUsedMana().value;
+                const total = Object.values(used).reduce((acc, count) => acc + count, 0);
 
-            return !meetsCost(used, manaCost);
-        })
-    });
+                return !meetsPip(used, manaPip);
+            })
+        });
 
-    const usedMana = TrackerActions.clearUsedMana();
+        if (choice === 'Cancel') {
+            return false;
+        }
 
-    if (choice === 'Cancel') {
-        return false;
+        choices.push(choice === 'Done');
     }
 
-    return false;
+
+   TrackerActions.clearUsedMana();
+
+    return choices.every(Boolean);
 }

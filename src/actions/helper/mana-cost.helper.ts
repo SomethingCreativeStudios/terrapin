@@ -28,26 +28,28 @@ export function meetsType(manaPip: ManaPip, mana: Record<ManaType, number>) {
     });
 }
 
-export function meetsCost(manaInQuestion: Record<ManaType, number>, cost: ManaCost) {
-    const convertedCost = manaCostToRecord(cost);
-    const withoutColor = minusMana(manaInQuestion, convertedCost);
-    if (!withoutColor) return false;
-    return true;
+export function meetsPip(manaInQuestion: Record<ManaType, number>, pip: ManaPip) {
+
+    if (pip.genericCost) {
+        const count = addAllFloatingMana(manaInQuestion);
+        console.log(count, pip.genericCost, manaInQuestion, Object.keys(ManaType));
+        return count === pip.genericCost;
+    }
+
+    return pip.types.some(type => manaInQuestion[type]);
 }
 
 
-function minusMana(manaInQuestion: Record<ManaType, number>, cost: Record<ManaType, number>): Record<ManaType, number> | null {
-    let couldNotPay = false;
-    const without = Object.entries(cost).reduce((acc, [manaType, howMuch]) => {
-        if (manaInQuestion[manaType as ManaType] < howMuch) {
-            couldNotPay = true;
-            return acc;
-        }
+export function manaCostToString(cost: ManaCost) {
+    return cost.mana.map(manaPipToString).join('');
+}
 
-        return { ...acc, [manaType]: (acc?.[manaType as ManaType] ?? 0) - howMuch };
-    }, manaInQuestion);
+export function manaPipToString(pip: ManaPip) {
+    if (pip.genericCost) {
+        return `(${pip.genericCost})`
+    }
 
-    return couldNotPay ? null : without;
+    return `(${pip.types.map(manaTypeToString).join('/')})`;
 }
 
 function manaCostToRecord(cost: ManaCost) {
@@ -61,5 +63,29 @@ function manaCostToRecord(cost: ManaCost) {
 }
 
 function addAllFloatingMana(floatingMana: Record<ManaType, number>) {
-    return Object.keys(ManaType).reduce((acc, type) => acc += floatingMana[type as ManaType] ?? 0, 0);
+    // @ts-ignore
+    return Object.keys(ManaType).reduce((acc, type) => acc += floatingMana[ManaType[type] as ManaType] ?? 0, 0);
+}
+
+function manaTypeToString(manaType: ManaType) {
+    switch (manaType) {
+        case ManaType.BLACK:
+            return "(B)"
+        case ManaType.BLUE:
+            return "(U)"
+        case ManaType.COLORLESS:
+            return "(C)"
+        case ManaType.GREEN:
+            return "(G)"
+        case ManaType.PHYREXIAN:
+            return "(P)"
+        case ManaType.RED:
+            return "(R)"
+        case ManaType.WHITE:
+            return "(W)"
+        case ManaType.X:
+            return "(X)"
+        default:
+            return ""
+    }
 }
