@@ -2,13 +2,14 @@
 import { ComputedRef, defineComponent, reactive, toRefs } from 'vue';
 import { useEvents, DialogEvents } from '~/composables';
 import InputButton from '../input-button';
+import InputTitle from '../input-title';
 
 export default defineComponent({
   name: 'input-block',
-  components: { InputButton },
+  components: { InputButton, InputTitle },
   props: {},
   setup() {
-    const state = reactive({ question: '', choices: [], validators: {} as Record<string, () => ComputedRef<boolean>> });
+    const state = reactive({ question: '' as string | (() => ComputedRef<string>), choices: [], validators: {} as Record<string, () => ComputedRef<boolean>> });
     const { onEvent, emitEvent } = useEvents();
 
     onEvent(DialogEvents.PROMPT, ({ question, choices, validators }) => {
@@ -32,7 +33,7 @@ export default defineComponent({
 
     return (
       <div class="input-block">
-        <div class="input-block__question" v-html={this.question}></div>
+        <input-title class="input-block__question" title={this.question}></input-title>
         <div class="input-block__choices">
           {this.choices.map((choice) => (
             //@ts-ignore
