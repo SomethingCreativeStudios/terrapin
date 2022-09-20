@@ -36,7 +36,7 @@ export async function wasPaid(manaCost: ManaCost): Promise<boolean> {
 
           return !meetsPip(used, manaPip);
         }),
-    });
+    }, true);
 
     if (choice === 'Cancel') {
       const { setFloatingMana } = useGameState();

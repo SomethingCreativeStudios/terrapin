@@ -1,5 +1,5 @@
 <script lang="tsx">
-import { defineComponent } from 'vue';
+import { defineComponent, onMounted, watch } from 'vue';
 
 export default defineComponent({
   name: 'input-button',
@@ -14,10 +14,20 @@ export default defineComponent({
       type: Function,
       default: () => {},
     },
+
+    clickOnValid: {
+      type: Boolean,
+      default: false,
+    },
   },
-  setup(props) {
-    console.log(props.validator);
-    return { isDisabled: props.validator() };
+  setup(props, ctx) {
+    const isDisabled = props.validator();
+    if (props.clickOnValid) {
+      onMounted(() => {
+        watch(props.validator() as any, () => ctx.emit('click'));
+      });
+    }
+    return { isDisabled };
   },
 
   render() {

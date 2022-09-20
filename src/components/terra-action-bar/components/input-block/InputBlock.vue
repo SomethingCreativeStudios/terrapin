@@ -9,13 +9,19 @@ export default defineComponent({
   components: { InputButton, InputTitle },
   props: {},
   setup() {
-    const state = reactive({ question: '' as string | (() => ComputedRef<string>), choices: [], validators: {} as Record<string, () => ComputedRef<boolean>> });
+    const state = reactive({
+      question: '' as string | (() => ComputedRef<string>),
+      choices: [],
+      clickOnValid: false,
+      validators: {} as Record<string, () => ComputedRef<boolean>>,
+    });
     const { onEvent, emitEvent } = useEvents();
 
-    onEvent(DialogEvents.PROMPT, ({ question, choices, validators }) => {
+    onEvent(DialogEvents.PROMPT, ({ question, choices, validators, clickOnValid }) => {
       state.choices = choices;
       state.question = question;
       state.validators = validators;
+      state.clickOnValid = clickOnValid;
     });
 
     function onClick(choice: string) {
@@ -37,7 +43,13 @@ export default defineComponent({
         <div class="input-block__choices">
           {this.choices.map((choice) => (
             //@ts-ignore
-            <input-button class="input-block__choice" onClick={() => this.onClick(choice)} choice={choice} validator={this.validators?.[choice]}></input-button>
+            <input-button
+              class="input-block__choice"
+              onClick={() => this.onClick(choice)}
+              choice={choice}
+              clickOnValid={this.clickOnValid}
+              validator={this.validators?.[choice]}
+            ></input-button>
           ))}
         </div>
       </div>

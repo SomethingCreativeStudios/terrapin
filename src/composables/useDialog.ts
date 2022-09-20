@@ -58,11 +58,11 @@ function askQuestion(question: string, choices: string[], validators: Record<str
   });
 }
 
-function askComplexQuestion(question: () => ComputedRef<string>, choices: string[], validators: Record<string, () => ComputedRef<boolean>> = {}): Promise<string> {
+function askComplexQuestion(question: () => ComputedRef<string>, choices: string[], validators: Record<string, () => ComputedRef<boolean>> = {}, clickOnValid = false): Promise<string> {
   return new Promise((resolve) => {
     const { emitEvent, onEvent } = useEvents();
 
-    emitEvent(DialogEvents.PROMPT, { question, choices, validators });
+    emitEvent(DialogEvents.PROMPT, { question, choices, validators, clickOnValid });
     onEvent(`${DialogEvents.PROMPT}-response`, ({ choice }) => resolve(choice));
   });
 }

@@ -46,10 +46,10 @@ export function manaCostToString(cost: ManaCost) {
 
 export function manaPipToString(pip: ManaPip) {
     if (pip.genericCost) {
-        return `(${pip.genericCost})`
+        return `<div class="mana-pip mana-pip--generic"><div class="mana-pip--generic-number-${pip.genericCost}"></div></div>`
     }
 
-    return `(${pip.types.map(manaTypeToString).join('/')})`;
+    return `${pip.types.map(manaTypeToString).join('/')}`;
 }
 
 function manaCostToRecord(cost: ManaCost) {
@@ -70,21 +70,21 @@ function addAllFloatingMana(floatingMana: Record<ManaType, number>) {
 function manaTypeToString(manaType: ManaType) {
     switch (manaType) {
         case ManaType.BLACK:
-            return "(B)"
+            return '<div class="mana-pip mana-pip--black"></div>'
         case ManaType.BLUE:
-            return "(U)"
+            return '<div class="mana-pip mana-pip--blue"></div>'
         case ManaType.COLORLESS:
-            return "(C)"
+            return '<div class="mana-pip mana-pip--colorless"></div>'
         case ManaType.GREEN:
-            return "(G)"
+            return '<div class="mana-pip mana-pip--green"></div>'
         case ManaType.PHYREXIAN:
-            return "(P)"
+            return '<div class="mana-pip mana-pip--phy"></div>'
         case ManaType.RED:
-            return "(R)"
+            return '<div class="mana-pip mana-pip--red"></div>'
         case ManaType.WHITE:
-            return "(W)"
+            return '<div class="mana-pip mana-pip--white"></div>'
         case ManaType.X:
-            return "(X)"
+            return '<div class="mana-pip mana-pip--x"></div>'
         default:
             return ""
     }
