@@ -1,3 +1,6 @@
+import { BaseCard } from '~/cards/base.card';
+import { ZoneType } from './zone.model';
+
 export interface Card {
   name: string;
   manaCost: ManaCost;
@@ -16,8 +19,16 @@ export interface Card {
   colors: CardColor[];
   imagePath: string;
   cardId: string;
+  oracleId: string;
   isToken?: boolean;
+}
+
+export interface CardState {
+  isTapped: boolean;
   position?: CardPosition;
+  zone?: ZoneType;
+  baseCard: Card;
+  cardClass: BaseCard
 }
 
 export interface CardPosition {

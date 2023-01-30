@@ -3,7 +3,9 @@ import { defineComponent, PropType, ref } from 'vue';
 import TerraCard from '~/components/terra-card';
 import { ContainerType, ZoneType } from '~/models/zone.model';
 import { useTerraZone } from './composables/useTerraZone';
-import { useMenu } from '~/composables';
+import { useMenu, useGameState } from '~/composables';
+
+const { getMeta } = useGameState();
 
 export default defineComponent({
   name: 'terra-zone',
@@ -43,21 +45,23 @@ export default defineComponent({
     },
   },
   render() {
-    const firstCard = this.zone.cards[0];
-    const secondCard = this.zone.cards[1];
+    const firstCard = getMeta(this.zone.cardIds[0]).value;
+    const secondCard = getMeta(this.zone.cardIds[1]).value;
 
-    const cards = this.zone.cards.map((card) => <terra-card card={card} containerType={this.containerType} flipCard={false} key={card.cardId}></terra-card>);
+    const cards = this.zone.cardIds.map((id) => <terra-card card={getMeta(id)?.value?.baseCard} containerType={this.containerType} flipCard={false} key={id}></terra-card>);
     const backOfCard = firstCard ? (
       <div>
-        {secondCard ? <terra-card class="terra-zone__card" card={secondCard} containerType={this.containerType} flipCard={true} key={secondCard.cardId}></terra-card> : null}
-        <terra-card class="terra-zone__card" card={firstCard} containerType={this.containerType} flipCard={true} key={firstCard.cardId}></terra-card>
+        {secondCard ? (
+          <terra-card class="terra-zone__card" card={secondCard?.baseCard} containerType={this.containerType} flipCard={true} key={secondCard.baseCard?.cardId}></terra-card>
+        ) : null}
+        <terra-card class="terra-zone__card" card={firstCard?.baseCard} containerType={this.containerType} flipCard={true} key={firstCard?.baseCard?.cardId}></terra-card>
       </div>
     ) : null;
 
     const zoneHeader = (
       <div class="terra-zone__header" onClick={this.onContextMenu}>
         <div class="terra-zone__header--title">
-          {this.name} ({this.zone.cards.length})
+          {this.name} ({this.zone.cardIds.length})
         </div>
         {this.$slots?.['header']?.() ?? <div></div>}
       </div>

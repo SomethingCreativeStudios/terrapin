@@ -5,12 +5,12 @@ export function untapAll() {
     const { getCardsInZone } = useZone();
     const { tapOrUntapCard } = useCard();
     const cards = getCardsInZone(ZoneType.battlefield);
-    tapOrUntapCard(cards.value.map(card => card.cardId), false);
+    tapOrUntapCard(cards.value, false);
 }
 
 export function tapAll() {
     const { getCardsInZone } = useZone();
     const { tapOrUntapCard } = useCard();
     const cards = getCardsInZone(ZoneType.battlefield);
-    tapOrUntapCard(cards.value.map(card => card.cardId), true);
+    tapOrUntapCard(cards.value, true);
 }

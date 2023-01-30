@@ -1,12 +1,16 @@
 import { computed, reactive } from 'vue';
 import { useTauri } from './useTauri';
 import { useZone } from './useZone';
-import { Card } from '~/models/card.model';
+import { useGameState } from './useGameState';
 import { ZoneType } from '~/models/zone.model';
 import { DeckActions } from '~/actions';
+import { cards as cardClassMap } from '~/cards/cards';
+import { BaseCard } from '~/cards/base.card';
 
 const { addCardToZone } = useZone();
-const state = reactive({ deck: [] as Card[] });
+const { setMeta } = useGameState();
+
+const state = reactive({ deck: [] as string[] });
 
 // @ts-ignore
 window.state.deck = state;
@@ -14,7 +18,18 @@ window.state.deck = state;
 async function loadDeck(deckName: string) {
   const { loadDeck: loadTauriDeck } = useTauri();
 
-  state.deck = await loadTauriDeck(deckName);
+  const cards = await loadTauriDeck(deckName);
+
+  cards.forEach((card) => {
+    const CardClass = cardClassMap[card.oracleId] as BaseCard;
+
+    setMeta(card.cardId, { baseCard: card });
+
+    // @ts-ignore
+    setMeta(card.cardId, { cardClass: CardClass ? new CardClass(card) : new BaseCard(card) });
+  });
+
+  state.deck = cards.map((card) => card.cardId);
   state.deck.forEach((card) => addCardToZone(ZoneType.deck, card));
 
   DeckActions.shuffleDeck();
@@ -22,10 +37,6 @@ async function loadDeck(deckName: string) {
 
 function getDeck() {
   return computed(() => state.deck);
-}
-
-function setDeck(deck: Card[]) {
-  state.deck = deck;
 }
 
 function drawXCards(x: number) {
@@ -36,8 +47,6 @@ function drawXCards(x: number) {
   xCards.forEach((card) => moveCard(ZoneType.deck, ZoneType.hand, card));
 }
 
-
-
 export function useDeck() {
-  return { loadDeck, getDeck, drawXCards, setDeck };
+  return { loadDeck, getDeck, drawXCards };
 }

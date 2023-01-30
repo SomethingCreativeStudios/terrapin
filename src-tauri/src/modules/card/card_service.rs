@@ -109,7 +109,7 @@ impl CardService {
     }
 
     fn get_card_column() -> String {
-        "id, name, manaCost, manaValue, convertedManaCost, power, toughness, types, subtypes, setCode , printings , layout , keywords , flavorText , colorIdentity ,colors ,scryfallId ,scryfallIllustrationId ,uuid".to_string()
+        "id, name, manaCost, manaValue, convertedManaCost, power, toughness, types, subtypes, setCode , printings , layout , keywords , flavorText , colorIdentity ,colors ,scryfallId ,scryfallIllustrationId ,uuid, scryfallOracleId".to_string()
     }
 
     fn row_to_card(row: &Row) -> Result<Card, Error> {
@@ -134,6 +134,7 @@ impl CardService {
                 scryfall_id: row.get(16).unwrap_or("".to_string()),
                 scryfall_illustration_id: row.get(17).unwrap_or("".to_string()),
                 uuid: row.get(18).unwrap_or("".to_string()),
+                scryfall_oracle_id:  row.get(19).unwrap_or("".to_string()),
                 is_token: false,
             },
         })

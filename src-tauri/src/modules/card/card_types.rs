@@ -25,6 +25,7 @@ pub struct Card {
 pub struct CardMeta {
     pub scryfall_id: String,
     pub scryfall_illustration_id: String,
+    pub scryfall_oracle_id: String,
     pub uuid: String,
     pub is_token: bool,
 }

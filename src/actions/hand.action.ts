@@ -1,4 +1,4 @@
-import { useZone, useDeck, useDialog } from '~/composables';
+import { useZone, useDeck } from '~/composables';
 import { Card } from '~/models/card.model';
 import { ZoneType } from '~/models/zone.model';
 import * as DeckActions from './deck.action';
@@ -25,7 +25,7 @@ export function sendToBottom(cards: Card[]) {
     const { moveCard } = useZone();
 
     cards.forEach((card) => {
-        moveCard(ZoneType.hand, ZoneType.deck, card, true);
+        moveCard(ZoneType.hand, ZoneType.deck, card.cardId, true);
     });
 }
 

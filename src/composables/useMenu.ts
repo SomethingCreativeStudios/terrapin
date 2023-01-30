@@ -1,6 +1,6 @@
-import { Card, CardPosition } from '~/models/card.model';
+import { Card, CardPosition, CardState } from '~/models/card.model';
 import { ZoneType } from '~/models/zone.model';
-import { useDeck, useDialog, useZone } from '~/composables';
+import { useDeck, useDialog, useGameState, useZone } from '~/composables';
 import { startMulligan, castSpell } from '~/states';
 import { HandActions, DeckActions, BattlefieldActions } from '~/actions';
 import { NumberPromptDialogModel } from '~/models/dialog.model';
@@ -49,12 +49,16 @@ function getMenu(zoneType: ZoneType, position: CardPosition) {
   }
 }
 
-function getCardMenu(card: Card, position: CardPosition) {
+function getCardMenu(card: Card, state: CardState, position: CardPosition) {
   const { findZoneNameFromCard } = useZone();
-  const zoneType = findZoneNameFromCard(card);
+  const zoneType = findZoneNameFromCard(card.cardId);
 
   if (zoneType === ZoneType.hand) {
-    return buildCardHandMenu(card, position);
+    return buildCardHandMenu(card, state, position);
+  }
+
+  if (zoneType === ZoneType.battlefield) {
+    return buildCardBattlefieldMenu(card, state, position);
   }
 }
 
@@ -62,10 +66,17 @@ export function useMenu() {
   return { getMenu, getCardMenu, buildMoveMenu };
 }
 
-function buildCardHandMenu(card: Card, position: CardPosition): MenuOptions {
+function buildCardBattlefieldMenu(card: Card, state: CardState, position: CardPosition): MenuOptions {
+  const mappedCosts =
+    state?.cardClass?.costs?.map((cost) => ({
+      label: cost.label ?? 'Do Cost',
+      customClass: cost.meetsRequirements() ? '' : 'disabled',
+      onClick: () => cost.meetsRequirements() && cost.pay(),
+    })) ?? [];
+
   return {
     iconFontClass: 'iconfont',
-    customClass: 'graveyard-menu',
+    customClass: 'battlefield-menu',
     minWidth: 150,
     x: position.x,
     y: position.y,
@@ -77,6 +88,34 @@ function buildCardHandMenu(card: Card, position: CardPosition): MenuOptions {
           castSpell(card);
         },
       },
+      ...mappedCosts,
+    ],
+  };
+}
+
+function buildCardHandMenu(card: Card, state: CardState, position: CardPosition): MenuOptions {
+  const mappedCosts =
+    state?.cardClass?.castingCosts?.map((cost) => ({
+      label: cost.label ?? 'Do Cost',
+      customClass: cost.meetsRequirements() ? '' : 'disabled',
+      onClick: () => cost.meetsRequirements() && cost.pay(),
+    })) ?? [];
+
+  return {
+    iconFontClass: 'iconfont',
+    customClass: 'hand-menu',
+    minWidth: 150,
+    x: position.x,
+    y: position.y,
+    zIndex: 10000,
+    items: [
+      {
+        label: card.cardTypes.includes('Land') ? 'Play' : 'Cast',
+        onClick: async () => {
+          castSpell(card);
+        },
+      },
+      ...mappedCosts,
     ],
   };
 }
@@ -92,7 +131,7 @@ function buildMoveMenu(fromZone: ZoneType, position: CardPosition, cards: Card[]
     return acc.concat({
       label: `Move to ${toZone}`,
       onClick: () => {
-        cards.map((card) => moveCard(fromZone, toZone as ZoneType, card));
+        cards.map((card) => moveCard(fromZone, toZone as ZoneType, card.cardId));
         onSelected?.(toZone);
       },
     });
@@ -228,9 +267,12 @@ function viewAll(zone: ZoneType, canShuffle = false) {
     label: 'View All',
     onClick: () => {
       const { getCardsInZone } = useZone();
+      const { getMeta } = useGameState();
       const { selectFrom } = useDialog();
-      const cards = getCardsInZone(zone);
-      selectFrom({ cards: cards.value, canMove: true, currentZone: zone, showShuffle: canShuffle });
+      const cardIds = getCardsInZone(zone);
+      const cards = cardIds.value.map((id) => getMeta(id).value?.baseCard);
+
+      selectFrom({ cards: cards, canMove: true, currentZone: zone, showShuffle: canShuffle });
     },
   };
 }

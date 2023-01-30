@@ -3,9 +3,11 @@ import { debounce } from 'debounce';
 import { Card, CardPosition } from '~/models/card.model';
 import { useEvents, useTauri } from '~/composables';
 import { useZone } from './useZone';
+import { useGameState } from './useGameState';
 
 const { onEvent, emitEvent } = useEvents();
 const { findZoneFromCard } = useZone();
+const { setManyMeta, getMeta } = useGameState();
 
 export enum CardBusEventName {
   POSITION_OFFSET_UPDATE = 'position-offset-update',
@@ -21,7 +23,7 @@ export interface CardPositionEvent {
   position: CardPosition;
 }
 
-const state = reactive({ hoveredCard: {} as Card, tokens: [] as Card[] });
+const state = reactive({ hoveredCard: '', tokens: [] as Card[] });
 
 // @ts-ignore
 window.state.card = state;
@@ -40,13 +42,13 @@ function setUpHoverEvents() {
 
     if (card) {
       // @ts-ignore
-      const zone = findZoneFromCard(card.__vue__.card);
+      const zone = findZoneFromCard(card.__vue__.card.cardId);
 
       if (!zone.disableHover) {
         // @ts-ignore
-        state.hoveredCard = card.__vue__.card;
+        state.hoveredCard = card.__vue__.card?.cardId;
       }
-    } else if (state.hoveredCard.cardId) {
+    } else if (state.hoveredCard) {
       clearHoveredCard();
     }
   }, 250);
@@ -56,13 +58,13 @@ function setUpHoverEvents() {
     const card = els.find((el) => el.classList.contains('terra-card'));
 
     if (!card) {
-      clearHoveredCard()
+      clearHoveredCard();
     }
   };
 }
 
 function getHoveredCard() {
-  return computed(() => state.hoveredCard);
+  return computed(() => getMeta(state.hoveredCard).value?.baseCard);
 }
 
 function updatePosition(ids: string[], position: CardPosition) {
@@ -80,13 +82,15 @@ function onPositionUpdate(cardId: string, cb: (position: CardPosition) => void) 
 function tapOrUntapCard(ids: string[], tap = true) {
   if (tap) {
     emitEvent(CardBusEventName.TAP_CARD, { ids });
+    setManyMeta(ids, { isTapped: true });
   } else {
     emitEvent(CardBusEventName.UNTAP_CARD, { ids });
+    setManyMeta(ids, { isTapped: false });
   }
 }
 
 function clearHoveredCard() {
-  state.hoveredCard = {} as Card;
+  state.hoveredCard = '';
 }
 export function useCard() {
   return { setUp, getHoveredCard, tapOrUntapCard, onPositionUpdate, updatePosition, setUpHoverEvents };

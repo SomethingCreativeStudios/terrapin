@@ -96,7 +96,7 @@ function itemEvents(zoneName: ZoneType, selected: Ref<(HTMLElement | SVGElement)
       zoneName,
       items.map((el) => {
         // @ts-ignore
-        return el.__vue__.card;
+        return el.__vue__.card?.cardId;
       })
     );
   };

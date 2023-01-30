@@ -58,6 +58,7 @@ impl TokenService {
                     is_token: true,
                     scryfall_id: card.id.clone(),
                     scryfall_illustration_id: card.id.clone(),
+                    scryfall_oracle_id: card.id.clone(),
                     uuid: card.id.clone(),
                 },
             })

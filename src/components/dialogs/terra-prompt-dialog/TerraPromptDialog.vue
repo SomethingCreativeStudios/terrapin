@@ -24,6 +24,10 @@ export default defineComponent({
       const { emitEvent } = useEvents();
       emitEvent(this.dialog.eventId || '', { response: this.response });
     },
+
+    onMouseLeave() {
+      console.log('test');
+    },
   },
 
   render() {

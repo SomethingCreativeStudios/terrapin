@@ -1,34 +1,40 @@
 import { computed } from '@vue/reactivity';
 import interact from 'interactjs';
-import { onMounted, reactive, ref, watch } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
 import { Card, CardPosition } from '~/models/card.model';
 import { ContainerType, Zone, ZoneType } from '~/models/zone.model';
+import { useGameState } from './useGameState';
+
+const { setMeta, getMeta } = useGameState();
 
 const state = reactive({ zones: {} as Record<string, Zone> });
 
 // @ts-ignore
 window.state.zone = state;
 
-function addCardToZone(zone: ZoneType, card: Card) {
-  if (state.zones[zone].cards.find((zCard) => zCard.cardId === card.cardId)) return;
+function addCardToZone(zone: ZoneType, id: string) {
+  if (state.zones[zone].cardIds.find((cardId) => cardId === id)) return;
 
-  state.zones[zone].cards.push(card);
+  state.zones[zone].cardIds.push(id);
+
+  const { position } = getMeta(id).value ?? {};
+  setMeta(id, { position: updateCardPosition(zone, position ?? { x: 0, y: 0 }, position) });
 }
 
-function moveCard(fromZone: ZoneType, toZone: ZoneType, card: Card, moveToBottom = false) {
-  state.zones[fromZone].cards = state.zones[fromZone].cards.filter((zoneCard) => zoneCard.cardId !== card.cardId);
+function moveCard(fromZone: ZoneType, toZone: ZoneType, id: string, moveToBottom = false) {
+  state.zones[fromZone].cardIds = state.zones[fromZone].cardIds.filter((cardId) => cardId !== id);
 
-  if (!state.zones[toZone].cards.some((zoneCard) => zoneCard.cardId === card.cardId)) {
+  if (!state.zones[toZone].cardIds.some((cardId) => cardId === id)) {
     if (moveToBottom) {
-      state.zones[toZone].cards = [...state.zones[toZone].cards, card];
+      state.zones[toZone].cardIds = [...state.zones[toZone].cardIds, id];
     } else {
-      state.zones[toZone].cards.push(card);
+      state.zones[toZone].cardIds.push(id);
     }
   }
 }
 
 function reorderCards(zone: ZoneType, oldIndex: number, newIndex: number) {
-  const cards = state.zones[zone].cards;
+  const cards = state.zones[zone].cardIds;
   const item = cards.splice(oldIndex, 1)[0];
   cards.splice(newIndex, 0, item);
 }
@@ -49,7 +55,7 @@ function dragDropCard(zone: HTMLElement, card: HTMLElement, dropPos: CardPositio
 function addZone(name: ZoneType, containerType: ContainerType, disableHover: boolean) {
   const zoneRef = ref(null);
 
-  state.zones[name] = { cards: [], selected: [], wasSelected: [], containerType, disableHover };
+  state.zones[name] = { cardIds: [], selected: [], wasSelected: [], containerType, disableHover };
 
   onMounted(() => {
     if (!zoneRef.value) return;
@@ -136,38 +142,42 @@ function addZone(name: ZoneType, containerType: ContainerType, disableHover: boo
   return { zoneRef, zone: computed(() => state.zones[name]) };
 }
 
-function updateSelected(name: ZoneType, selected: Card[]) {
+function updateSelected(name: ZoneType, selected: string[]) {
   state.zones[name].wasSelected = [...state.zones[name].selected];
   state.zones[name].selected = selected;
 }
 
-function findZoneNameFromCard({ cardId }: Card) {
-  return Object.entries(state.zones).find(([_, zone]) => zone.cards.some((card) => card.cardId === cardId))?.[0] as ZoneType;
+function findZoneNameFromCard(id: string) {
+  return Object.entries(state.zones).find(([_, zone]) => zone.cardIds.some((cardId) => cardId === id))?.[0] as ZoneType;
 }
 
-function findZoneFromCard(card: Card) {
-  const zoneName = findZoneNameFromCard(card);
+function findZoneFromCard(id: string) {
+  const zoneName = findZoneNameFromCard(id);
   return state.zones[zoneName || ''];
 }
 
-function findOtherSelectedByCard(card: Card) {
-  const zoneName = findZoneNameFromCard(card);
+function findOtherSelectedByCard(id: string) {
+  const zoneName = findZoneNameFromCard(id);
   if (zoneName) {
-    return state.zones[zoneName].selected.filter((found) => found.cardId !== card.cardId);
+    return state.zones[zoneName].selected.filter((found) => found !== id);
   }
   return [];
 }
 
 function getCardsInZone(zone: ZoneType) {
-  return computed(() => state?.zones?.[zone]?.cards ?? []);
+  return computed(() => state?.zones?.[zone]?.cardIds ?? []);
 }
 
-function setCardsInZone(zone: ZoneType, cards: Card[]) {
-  state.zones[zone].cards = cards;
+function setCardsInZone(zone: ZoneType, cardIds: string[]) {
+  state.zones[zone].cardIds = cardIds;
 }
 
-function removeCardInZone(zone: ZoneType, card: Card) {
-  state.zones[zone].cards = state.zones[zone].cards.filter(zCard => zCard.cardId !== card.cardId);
+function removeCardInZone(zone: ZoneType, id: string) {
+  state.zones[zone].cardIds = state.zones[zone].cardIds.filter((cardId) => cardId !== id);
+}
+
+function getZones() {
+  return computed(() => state?.zones);
 }
 
 export function useZone() {
@@ -183,7 +193,8 @@ export function useZone() {
     findZoneFromCard,
     findOtherSelectedByCard,
     updateSelected,
-    removeCardInZone
+    removeCardInZone,
+    getZones,
   };
 }
 
@@ -194,22 +205,24 @@ function getCard(element: HTMLElement): Card {
 
 function isSameZone(zone: ZoneType, element: HTMLElement) {
   const card = getCard(element);
-  const cards = state.zones[zone].cards ?? [];
+  const cardIds = state.zones[zone].cardIds ?? [];
 
-  return cards.some((zoneCard) => card.cardId === zoneCard.cardId);
+  return cardIds.some((cardId) => card.cardId === cardId);
 }
 
 function moveCardDragDrop(newZone: ZoneType, element: HTMLElement, newPosition?: CardPosition, moveSelected = false) {
   const card = getCard(element);
-  const currentZone = findZoneNameFromCard(card);
+  const currentZone = findZoneNameFromCard(card.cardId);
+  const { position } = getMeta(card.cardId).value ?? {};
+  setMeta(card.cardId, { position: updateCardPosition(newZone, position ?? { x: 0, y: 0 }, newPosition) });
 
-  card.position = updateCardPosition(newZone, card?.position ?? { x: 0, y: 0 }, newPosition);
-
-  moveCard(currentZone || '', newZone, card);
+  moveCard(currentZone || '', newZone, card.cardId);
 
   if (moveSelected) {
     state.zones[currentZone || ''].selected.forEach((card) => {
-      card.position = updateCardPosition(newZone, card?.position ?? { x: 0, y: 0 }, newPosition);
+      //card.position = updateCardPosition(newZone, card?.position ?? { x: 0, y: 0 }, newPosition);
+      //const { position } = getMeta(card).value ?? {};
+      //setMeta(card, { position: updateCardPosition(newZone, position ?? { x: 0, y: 0 }, newPosition) });
 
       moveCard(currentZone || '', newZone, card);
     });

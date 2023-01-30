@@ -2,8 +2,8 @@
 import { defineComponent, PropType, computed } from 'vue';
 import { setUpCard } from './composables/useTerraCard';
 import { Card } from '~/models/card.model';
-import { ContainerType, ZoneType } from '~/models/zone.model';
-import { useMenu } from '~/composables';
+import { ContainerType } from '~/models/zone.model';
+import { useMenu, useGameState } from '~/composables';
 
 export default defineComponent({
   name: 'terra-card',
@@ -29,21 +29,26 @@ export default defineComponent({
     },
   },
   setup(props, ctx) {
+    const { getMeta } = useGameState();
     const { cardClass, draggable, onTap, onCardClick, onCardHover } = setUpCard(props.card, props.containerType, ctx);
     const cardImage = computed(() => (props.flipCard ? './missing-image.jpeg' : props.card.imagePath));
+    const cardState = getMeta(props.card.cardId);
 
     if (props.containerType === ContainerType.SORTABLE || props.containerType === ContainerType.CARD_DIALOG) {
       return { cardClass, cardImage, onTap, onCardClick, onCardHover };
     }
 
-    return { draggable, cardClass, cardImage, onTap, onCardClick, onCardHover };
+    return { draggable, cardClass, cardImage, cardState, onTap, onCardClick, onCardHover };
   },
   methods: {
     onContextMenu(e: MouseEvent) {
       e.preventDefault();
+      const { getMeta } = useGameState();
       const { getCardMenu } = useMenu();
+      const cardState = getMeta(this.card.cardId);
 
-      this.$contextmenu(getCardMenu(this.card, { x: e.x, y: e.y }) as any);
+      // @ts-ignore
+      this.$contextmenu(getCardMenu(this.card, cardState.value, { x: e.x, y: e.y }) as any);
     },
   },
   render() {

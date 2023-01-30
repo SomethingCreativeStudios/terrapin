@@ -9,7 +9,7 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@imengyu/vue3-context-menu": "^1.0.9",
+    "@imengyu/vue3-context-menu": "^1.1.10",
     "@tauri-apps/api": "1.2.0",
     "@vitejs/plugin-vue-jsx": "3.0.0",
     "debounce": "^1.2.1",
@@ -28,7 +28,7 @@
     "xstate": "4.35.1"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "1.2.0",
+    "@tauri-apps/cli": "1.2.3",
     "@types/debounce": "^1.2.1",
     "@types/dragula": "^3.7.1",
     "@types/node": "^18.0.0",
@@ -39,7 +39,7 @@
     "@vitejs/plugin-vue": "^2.3.3",
     "sass": "^1.53.0",
     "typescript": "4.9.4",
-    "vite": "4.0.2",
-    "vue-tsc": "1.0.16"
+    "vite": "4.0.4",
+    "vue-tsc": "1.0.24"
   }
 }

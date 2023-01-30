@@ -1,6 +1,6 @@
 import { emit } from 'process';
 import { computed, Ref, ref } from 'vue';
-import { useEvents, useDraggable, DraggableEvents, ContainerBusEvents, useZone, CardBusEventName } from '~/composables';
+import { useEvents, useDraggable, DraggableEvents, ContainerBusEvents, useZone, CardBusEventName, useGameState } from '~/composables';
 import { Card, CardPosition } from '~/models/card.model';
 import { EventEmitter } from '~/models/event-emitter.model';
 import { ContainerType } from '~/models/zone.model';
@@ -17,6 +17,7 @@ function buildClasses(cardState: Ref<string>, containerType: ContainerType) {
 
 function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents: EventEmitter, draggable: Ref<null>, cardState: Ref<string>, containerType: ContainerType) {
   const { emitEvent, onEvent } = useEvents();
+  const { setMeta } = useGameState();
   const isSelected = () => draggable.value && (draggable.value as HTMLElement).classList.contains('selected');
 
   dragEvents.listen(DraggableEvents.ON_POSITION_MOVE, ({ offset }: { offset: CardPosition }) => {
@@ -52,12 +53,13 @@ function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents
       (draggable.value as HTMLElement).style['z-index'] = zIndex;
     }
     (draggable.value as HTMLElement).style.transform = `translate(${position.value.x}px, ${position.value.y}px)`;
+    setMeta(cardId, { position: { x: position.value.x, y: position.value.y } });
   });
 
   onEvent(CardBusEventName.TOGGLE_TAP_CARD, () => {
     if (!isSelected()) return;
 
-    onTap(cardState, containerType);
+    onTap(cardId, cardState, containerType);
   });
 
   onEvent(CardBusEventName.TAP_CARD, ({ ids }: { ids: string[] }) => {
@@ -75,7 +77,9 @@ function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents
   });
 }
 
-function onTap(cardState: Ref<string>, containerType: ContainerType) {
+function onTap(cardId: string, cardState: Ref<string>, containerType: ContainerType) {
+  const { setMeta } = useGameState();
+
   if (containerType !== ContainerType.FREE_POSITION) return;
 
   if (cardState.value === 'tapped') {
@@ -83,6 +87,8 @@ function onTap(cardState: Ref<string>, containerType: ContainerType) {
   } else {
     cardState.value = 'tapped';
   }
+
+  setMeta(cardId, { isTapped: cardState.value === 'tapped' });
 }
 
 function onCardClick(e: any, card: Card, containerType: ContainerType) {
@@ -91,7 +97,7 @@ function onCardClick(e: any, card: Card, containerType: ContainerType) {
   const { emitEvent } = useEvents();
   const { findZoneNameFromCard } = useZone();
 
-  emitEvent(ContainerBusEvents.SELECT_ELEMENT, { name: findZoneNameFromCard(card), el: e.target });
+  emitEvent(ContainerBusEvents.SELECT_ELEMENT, { name: findZoneNameFromCard(card.cardId), el: e.target });
 }
 
 function onCardHover(e: MouseEvent, card: Card, containerType: ContainerType, ctx: any) {
@@ -99,12 +105,15 @@ function onCardHover(e: MouseEvent, card: Card, containerType: ContainerType, ct
   const els = document.elementsFromPoint(e.x, e.y);
   const box = els[0]?.getBoundingClientRect();
 
-  ctx.emit("cardHover", { pos: { x: box.x, y: box.y }, card } as { pos: CardPosition, card: Card });
+  ctx.emit('cardHover', { pos: { x: box.x, y: box.y }, card } as { pos: CardPosition; card: Card });
 }
 
 export function setUpCard(card: Card, containerType: ContainerType, ctx: any) {
+  const { getMeta } = useGameState();
+  const cardMeta = getMeta(card.cardId);
+
   const { setup: setUpDrag } = useDraggable();
-  const { draggable, position, draggableEvents } = setUpDrag(card.position);
+  const { draggable, position, draggableEvents } = setUpDrag(cardMeta.value.position);
 
   const cardState = ref('initial');
 
@@ -113,7 +122,7 @@ export function setUpCard(card: Card, containerType: ContainerType, ctx: any) {
   return {
     draggable,
     cardClass: buildClasses(cardState, containerType),
-    onTap: () => onTap(cardState, containerType),
+    onTap: () => onTap(card.cardId, cardState, containerType),
     onCardClick: (e: any) => onCardClick(e, card, containerType),
     onCardHover: (e: any) => onCardHover(e, card, containerType, ctx),
   };

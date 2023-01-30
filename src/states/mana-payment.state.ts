@@ -131,7 +131,7 @@ function tempNext(_: StateContext<ManaPaymentContext>, service: StateInterrupter
 function moveToStack(state: StateContext<ManaPaymentContext>, service: StateInterrupter<ManaPaymentContext>) {
   const { addCardToZone } = useZone();
 
-  addCardToZone(ZoneType.stack, state.context.card);
+  addCardToZone(ZoneType.stack, state.context.card.cardId);
   service.send(ManaPaymentActions.NEXT);
 }
 
@@ -172,7 +172,7 @@ async function payForSpell(_: StateContext<ManaPaymentContext>, service: StateIn
   const card = _.context.card;
 
   if (card.cardTypes.includes('Land')) {
-    moveCard(ZoneType.hand, ZoneType.battlefield, _.context.card);
+    moveCard(ZoneType.hand, ZoneType.battlefield, _.context.card.cardId);
     service.send(ManaPaymentActions.NEXT);
     return;
   }
@@ -182,14 +182,14 @@ async function payForSpell(_: StateContext<ManaPaymentContext>, service: StateIn
   const wasPaid = await PaymentActions.wasPaid(card.manaCost);
 
   if (wasPaid) {
-    moveCard(ZoneType.hand, ZoneType.battlefield, _.context.card);
+    moveCard(ZoneType.hand, ZoneType.battlefield, _.context.card.cardId);
   } else {
     //moveCard(ZoneType.stack, ZoneType.hand, _.context.card);
   }
 
   service.send(ManaPaymentActions.NEXT);
   setUserAction(UserAction.NOTHING);
-  removeCardInZone(ZoneType.stack, card);
+  removeCardInZone(ZoneType.stack, card.cardId);
 }
 
 function makeTransitionString(...args: string[]) {
