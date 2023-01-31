@@ -1,10 +1,7 @@
 import { BaseCard } from '../base.card';
-import { MoxOpalCard } from './mox-opal.card';
-import { ThoughtcastCard } from './thoughtcast.card';
+import * as allCards from './cards';
 
-const cards = {
-  'de2440de-e948-4811-903c-0bbe376ff64d': MoxOpalCard,
-  'cce9bbff-82dc-4b2f-addd-d6715588de20': ThoughtcastCard,
-} as Record<string, any>;
+//@ts-ignore
+const cards = Object.entries(allCards).reduce((acc, [_, card]) => ({ ...acc, [card.UUID]: card }), {} as Record<string, BaseCard>) as Record<string, BaseCard>;
 
 export { cards };

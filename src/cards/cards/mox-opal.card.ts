@@ -1,13 +1,15 @@
 import { Card } from '~/models/card.model';
 import { BaseCard } from '../base.card';
-import { CostAndPredicate } from '../models/effect';
-import { AddManaCost } from '../models/effects/add-mana.cost';
-import { MetalcraftCost } from '../models/effects/metacraft.cost';
-import { TapCost } from '../models/effects/tap.cost';
+import { ManaConditional } from '../models/abilities/mana-conditional.ability';
+import { MetalcraftConditional } from '../models/conditional/metacraft.conditional';
+import { TapCost } from '../models/costs/tap-cost';
 
 export class MoxOpalCard extends BaseCard {
+  static UUID = 'de2440de-e948-4811-903c-0bbe376ff64d';
+
   constructor(card: Card) {
     super(card);
-    this.costs.push(new CostAndPredicate([new TapCost(card), new MetalcraftCost(card), new AddManaCost(card)], 'Tap: Add one mana'));
+
+    this.abilities.push(new ManaConditional(card, new MetalcraftConditional(), [new TapCost(card)], 'Tap: Add one mana'));
   }
 }

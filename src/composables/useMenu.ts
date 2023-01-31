@@ -67,11 +67,11 @@ export function useMenu() {
 }
 
 function buildCardBattlefieldMenu(card: Card, state: CardState, position: CardPosition): MenuOptions {
-  const mappedCosts =
-    state?.cardClass?.costs?.map((cost) => ({
-      label: cost.label ?? 'Do Cost',
-      customClass: cost.meetsRequirements() ? '' : 'disabled',
-      onClick: () => cost.meetsRequirements() && cost.pay(),
+  const mappedAbilities =
+    state?.cardClass?.abilities?.map((ability) => ({
+      label: ability.text ?? 'Do Cost',
+      customClass: ability.canDo() ? '' : 'disabled',
+      onClick: () => ability.canDo() && ability.do(),
     })) ?? [];
 
   return {
@@ -81,25 +81,26 @@ function buildCardBattlefieldMenu(card: Card, state: CardState, position: CardPo
     x: position.x,
     y: position.y,
     zIndex: 10000,
-    items: [
-      {
-        label: card.cardTypes.includes('Land') ? 'Play' : 'Cast',
-        onClick: async () => {
-          castSpell(card);
-        },
-      },
-      ...mappedCosts,
-    ],
+    items: [...mappedAbilities],
   };
 }
 
 function buildCardHandMenu(card: Card, state: CardState, position: CardPosition): MenuOptions {
   const mappedCosts =
     state?.cardClass?.castingCosts?.map((cost) => ({
-      label: cost.label ?? 'Do Cost',
-      customClass: cost.meetsRequirements() ? '' : 'disabled',
-      onClick: () => cost.meetsRequirements() && cost.pay(),
+      label: cost.label ?? 'Cast',
+      customClass: cost.canCast() ? '' : 'disabled',
+      onClick: () => cost.canCast() && cost.cast(),
     })) ?? [];
+
+  const defaultCosts = [
+    {
+      label: card.cardTypes.includes('Land') ? 'Play' : 'Cast',
+      onClick: async () => {
+        castSpell(card);
+      },
+    },
+  ];
 
   return {
     iconFontClass: 'iconfont',
@@ -108,15 +109,7 @@ function buildCardHandMenu(card: Card, state: CardState, position: CardPosition)
     x: position.x,
     y: position.y,
     zIndex: 10000,
-    items: [
-      {
-        label: card.cardTypes.includes('Land') ? 'Play' : 'Cast',
-        onClick: async () => {
-          castSpell(card);
-        },
-      },
-      ...mappedCosts,
-    ],
+    items: state.cardClass.castingCosts.length === 0 ? defaultCosts : mappedCosts,
   };
 }
 

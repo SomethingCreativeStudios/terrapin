@@ -15,6 +15,10 @@ export async function wasPaid(manaCost: ManaCost): Promise<boolean> {
   }
 
   for await (const manaPip of manaCost.mana) {
+    if (manaPip.genericCost <= 0 && manaPip.types.length === 0) {
+      continue;
+    }
+
     const question = () =>
       computed(() => {
         if (manaPip.genericCost) {
@@ -27,16 +31,21 @@ export async function wasPaid(manaCost: ManaCost): Promise<boolean> {
         return `Pay Mana? ${manaPipToString(manaPip)}`;
       });
 
-    const choice = await askComplexQuestion(question, ['Done', 'Cancel'], {
-      Done: () =>
-        computed(() => {
-          const { getUsedMana } = useGameState();
-          const used = getUsedMana().value;
-          const total = Object.values(used).reduce((acc, count) => acc + count, 0);
-
-          return !meetsPip(used, manaPip);
-        }),
-    }, true);
+    const choice = await askComplexQuestion(
+      question,
+      ['Done', 'Cancel'],
+      {
+        Done: () =>
+          computed(() => {
+            const { getUsedMana } = useGameState();
+            const used = getUsedMana().value;
+            const total = Object.values(used).reduce((acc, count) => acc + count, 0);
+            console.log(total);
+            return !meetsPip(used, manaPip);
+          }),
+      },
+      true
+    );
 
     if (choice === 'Cancel') {
       const { setFloatingMana } = useGameState();

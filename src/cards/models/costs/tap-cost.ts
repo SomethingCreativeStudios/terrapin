@@ -1,13 +1,13 @@
-import { Card } from '~/models/card.model';
-import { CardCost } from '../effect';
 import { useCard } from '~/composables';
+import { Card } from '~/models/card.model';
+import { Cost } from './cost';
 
-export class TapCost extends CardCost {
+export class TapCost extends Cost {
   constructor(card: Card) {
     super(card, 'Tap');
   }
 
-  meetsRequirements(): boolean {
+  canPay(): boolean {
     return !this.getMeta()?.isTapped;
   }
 

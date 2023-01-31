@@ -1,16 +1,10 @@
-import { Card } from '~/models/card.model';
-import { CardCost } from '../effect';
 import { useGameState, useZone } from '~/composables';
 import { ZoneType } from '~/models/zone.model';
+import { Conditional } from './conditional';
 
-const { getZones } = useZone();
-
-export class MetalcraftCost extends CardCost {
-  constructor(card: Card) {
-    super(card);
-  }
-
-  meetsRequirements(): boolean {
+export class MetalcraftConditional implements Conditional {
+  canMeet(): boolean {
+    const { getZones } = useZone();
     const { getMeta } = useGameState();
     const battlefield = getZones().value[ZoneType.battlefield];
     const numberOfArtifacts = battlefield.cardIds.filter((id) => {
@@ -21,6 +15,4 @@ export class MetalcraftCost extends CardCost {
 
     return numberOfArtifacts.length > 2;
   }
-
-  pay(): void {}
 }

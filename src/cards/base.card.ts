@@ -1,10 +1,16 @@
 import { Card } from '~/models/card.model';
+import { Ability } from './models/abilities/ability';
+import { CastingCost } from './models/casting-cost/casting-cost';
 import { CardCost, CardEffect } from './models/effect';
 
-export class BaseCard {
-  public effects = [] as CardEffect[];
-  public costs = [] as CardCost[];
-  public castingCosts = [] as CardCost[];
+export interface BaseCardID {
+  UUID: string;
+}
+export abstract class BaseCard {
+  public static UUID: string;
+
+  public abilities = [] as Ability[];
+  public castingCosts = [] as CastingCost[];
 
   constructor(card: Card) {}
 }
