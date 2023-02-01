@@ -73,7 +73,7 @@ $card-width: 122px;
 $card-height: 170px;
 
 .terra-card {
-  width: $card-width;
+  min-width: $card-width;
   height: $card-height;
 
   position: absolute;

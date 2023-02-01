@@ -67,9 +67,9 @@ export default defineComponent({
       </div>
     );
     return (
-      <div ref="zoneRef" class={this.zoneClasses}>
+      <div  class={this.zoneClasses}>
         {zoneHeader}
-        {this.containerType === ContainerType.TOP_CARD ? backOfCard : cards}
+        <div ref="zoneRef" class="terra-zone__cards">{this.containerType === ContainerType.TOP_CARD ? backOfCard : cards}</div>
         {this.$slots?.['default']?.()}
       </div>
     );
@@ -104,5 +104,11 @@ export default defineComponent({
 
 .droppable-target {
   background: #5c5b5b;
+}
+
+.terra-zone__cards {
+  width: 100%;
+  display: flex;
+  overflow-x: auto;
 }
 </style>

@@ -1,0 +1,15 @@
+export enum TurnPhase {
+  UPTAP = 'untap',
+  UPKEEP = 'upkeep',
+  DRAW = 'draw',
+  MAIN_ONE = 'main one',
+  COMBAT = 'combat',
+  DECLARE_ATTACKERS = 'declare attackers',
+  DECLARE_BLOCKERS = 'declare blockers',
+  SPECIAL_DAMAGE = 'special damage',
+  DAMAGE = 'damage',
+  END_COMBAT = 'end combat',
+  MAIN_TWO = 'main two',
+  END_TURN = 'end turn',
+  CLEAN_UP = 'clean up',
+}
