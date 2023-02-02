@@ -56,7 +56,13 @@ const mulliganState = createMachine({
 });
 
 function startMulligan() {
+  const { nextPhase } = useGameState();
   const service = buildService();
+
+  service.onDone(() => {
+    nextPhase();
+  });
+
   service.start();
 }
 

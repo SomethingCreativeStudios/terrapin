@@ -86,6 +86,9 @@ function buildCardBattlefieldMenu(card: Card, state: CardState, position: CardPo
 }
 
 function buildCardHandMenu(card: Card, state: CardState, position: CardPosition): MenuOptions {
+  const { canPlayLand } = useGameState();
+  const isLand = card.cardTypes.includes('Land');
+
   const mappedCosts =
     state?.cardClass?.castingCosts?.map((cost) => ({
       label: cost.label ?? 'Cast',
@@ -95,9 +98,12 @@ function buildCardHandMenu(card: Card, state: CardState, position: CardPosition)
 
   const defaultCosts = [
     {
-      label: card.cardTypes.includes('Land') ? 'Play' : 'Cast',
+      label: isLand ? 'Play' : 'Cast',
+      customClass: isLand && !canPlayLand().value ? 'disabled' : '',
       onClick: async () => {
-        castSpell(card);
+        if ((isLand && canPlayLand().value) || !isLand) {
+          castSpell(card);
+        }
       },
     },
   ];

@@ -170,12 +170,13 @@ function resolveTargets(_: StateContext<ManaPaymentContext>, service: StateInter
 
 async function payForSpell(ctx: StateContext<ManaPaymentContext>, service: StateInterrupter<ManaPaymentContext>) {
   const { moveCard, removeCardInZone } = useZone();
-  const { setUserAction } = useGameState();
+  const { setUserAction, playLand } = useGameState();
   const card = ctx.context.card;
 
   if (card.cardTypes.includes('Land')) {
     moveCard(ZoneType.hand, ZoneType.battlefield, ctx.context.card.cardId);
     service.send(ManaPaymentActions.NEXT);
+    playLand();
     return;
   }
 

@@ -1,5 +1,20 @@
 import { computed, reactive } from 'vue';
+import { Interpreter, AnyEventObject, ResolveTypegenMeta, TypegenDisabled, BaseActionObject, ServiceMap, InterpreterStatus } from 'xstate';
 import { CardState, ManaType } from '~/models/card.model';
+import { PhaseType, TurnPhase } from '~/models/phases.model';
+import { startPhases } from '~/states/phase.state';
+import { phaseSubject } from '~/watchers/phase.watcher';
+
+type PhaseState = Interpreter<
+  any,
+  any,
+  AnyEventObject,
+  {
+    value: any;
+    context: any;
+  },
+  ResolveTypegenMeta<TypegenDisabled, AnyEventObject, BaseActionObject, ServiceMap>
+>;
 
 export enum UserAction {
   NOTHING = 'nothing',
@@ -9,11 +24,15 @@ export enum UserAction {
 }
 
 const state = reactive({
+  turnCount: 0,
   lifeCount: 20,
+  landsPerTurn: 1,
+  landsPlayed: 0,
   floatingMana: {} as Record<ManaType, number>,
   usedMana: {} as Record<ManaType, number>,
   cardMeta: {} as Record<string, CardState>,
   currentUserAction: UserAction.NOTHING,
+  phaseState: {} as PhaseState,
 });
 
 // @ts-ignore
@@ -21,6 +40,17 @@ window.state.gameState = state;
 
 function setUp() {
   document.body.setAttribute('user-action', state.currentUserAction);
+  state.phaseState = startPhases();
+
+  phaseSubject.subscribe(({ type, phase }) => {
+    if (type === PhaseType.START && phase === TurnPhase.UPKEEP) {
+      state.landsPlayed = 0;
+    }
+
+    if (type === PhaseType.START && phase === TurnPhase.UPTAP) {
+      state.turnCount += 1;
+    }
+  });
 }
 
 function getUserAction() {
@@ -32,8 +62,36 @@ function setUserAction(userAction: UserAction) {
   document.body.setAttribute('user-action', state.currentUserAction);
 }
 
+function getTurnCount() {
+  return computed(() => state.turnCount);
+}
+
 function getLifeTotal() {
   return computed(() => state.lifeCount);
+}
+
+function canPlayLand() {
+  return computed(() => state.landsPlayed < state.landsPerTurn);
+}
+
+function setLandsPlayed(x: number) {
+  state.landsPlayed = x;
+}
+
+function playLand() {
+  state.landsPlayed += 1;
+}
+
+function getLandsPlayed() {
+  return computed(() => state.landsPlayed);
+}
+
+function setMaxLandsPerTurn(x: number) {
+  state.landsPerTurn = x;
+}
+
+function getMaxLandsPerTurn() {
+  return computed(() => state.landsPerTurn);
 }
 
 function setLifeTotal(lifeTotal: number) {
@@ -74,9 +132,19 @@ function setManyMeta(ids: string[], meta: Partial<CardState>) {
   });
 }
 
+function nextPhase() {
+  if (state.phaseState.status === InterpreterStatus.NotStarted) {
+    state.phaseState.start();
+  }
+
+  state.phaseState.send('NEXT');
+}
+
 export function useGameState() {
   return {
     setUp,
+    nextPhase,
+    getTurnCount,
     setLifeTotal,
     getLifeTotal,
     setFloatingMana,
@@ -86,8 +154,14 @@ export function useGameState() {
     setUsedMana,
     getMeta,
     setMeta,
+    playLand,
     setManyMeta,
     getUsedMana,
     getManaOffset,
+    canPlayLand,
+    setLandsPlayed,
+    getLandsPlayed,
+    setMaxLandsPerTurn,
+    getMaxLandsPerTurn,
   };
 }

@@ -6,6 +6,7 @@ import { ZoneType } from '~/models/zone.model';
 import { DeckActions } from '~/actions';
 import { cards as cardClassMap } from '~/cards/cards';
 import { BaseCard } from '~/cards/base.card';
+import { startMulligan } from '~/states/mulligan.state';
 
 const { addCardToZone } = useZone();
 const { setMeta } = useGameState();
@@ -33,6 +34,8 @@ async function loadDeck(deckName: string) {
   state.deck.forEach((card) => addCardToZone(ZoneType.deck, card));
 
   DeckActions.shuffleDeck();
+
+  startMulligan();
 }
 
 function getDeck() {

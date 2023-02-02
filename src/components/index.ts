@@ -4,7 +4,8 @@ import TerraHoverCard from './terra-hover-card';
 import { TerraActionBar } from './terra-action-bar';
 import LifeTracker from './life-tracker';
 import ManaTracker from './mana-tracker';
+import PhaseTracker from './phase-tracker';
 
 export * from './dialogs';
 
-export { TerraCard, ManaTracker, LifeTracker, TerraHoverCard, TerraZone, TerraActionBar };
+export { TerraCard, ManaTracker, LifeTracker, TerraHoverCard, TerraZone, TerraActionBar, PhaseTracker };

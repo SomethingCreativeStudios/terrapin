@@ -1,6 +1,7 @@
-import { createMachine, assign, interpret, actions, RaiseAction } from 'xstate';
-import { TurnPhase } from '~/models/phases.model';
-import { setUpTransitions, StateContext, StateInterrupter } from './shared';
+import { createMachine, interpret, actions, RaiseAction } from 'xstate';
+import { PhaseType, TurnPhase } from '~/models/phases.model';
+import { setUpTransitions } from './shared';
+import { phaseSubject } from '~/watchers/phase.watcher';
 
 const { raise } = actions;
 
@@ -14,13 +15,20 @@ interface PhaseContext {
 
 const phaseState = createMachine({
   id: 'turn-phase',
-  initial: 'uptap',
+  initial: 'initial',
   context: {
     skipCombat: false,
   } as PhaseContext,
   states: {
+    initial: {
+      on: {
+        NEXT: 'uptap',
+      },
+    },
     uptap: {
-      on: { '': 'upkeep' },
+      after: {
+        500: { target: 'upkeep' },
+      },
       entry: [() => onStart(TurnPhase.UPTAP)],
       exit: [() => onEnd(TurnPhase.UPTAP)],
     },
@@ -77,7 +85,7 @@ const phaseState = createMachine({
     },
     damage: {
       on: {
-        NEXT: 'damage',
+        NEXT: 'end_combat',
       },
       entry: [() => onStart(TurnPhase.DAMAGE)],
       exit: [() => onEnd(TurnPhase.DAMAGE)],
@@ -97,8 +105,8 @@ const phaseState = createMachine({
       exit: [() => onEnd(TurnPhase.MAIN_TWO)],
     },
     end_turn: {
-      on: {
-        '': 'end_turn',
+      after: {
+        500: { target: 'clean_up' },
       },
       entry: [() => onStart(TurnPhase.END_TURN)],
       exit: [() => onEnd(TurnPhase.END_TURN)],
@@ -116,6 +124,8 @@ const phaseState = createMachine({
 function startPhases() {
   const service = buildService();
   service.start();
+
+  return service;
 }
 
 export { startPhases };
@@ -129,9 +139,9 @@ function buildService() {
 }
 
 function onStart(phase: TurnPhase) {
-  console.log('On Start', phase);
+  phaseSubject.next({ type: PhaseType.START, phase });
 }
 
 function onEnd(phase: TurnPhase) {
-  console.log('On end', phase);
+  phaseSubject.next({ type: PhaseType.END, phase });
 }

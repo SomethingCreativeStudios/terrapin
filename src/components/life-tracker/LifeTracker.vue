@@ -8,13 +8,14 @@ export default defineComponent({
   components: {},
   props: {},
   setup() {
-    const { getLifeTotal } = useGameState();
+    const { getLifeTotal, getTurnCount } = useGameState();
 
-    return { lifeCount: getLifeTotal() };
+    return { lifeCount: getLifeTotal(), turnCount: getTurnCount() };
   },
   render() {
     return (
       <div class="life-tracker">
+        <div class="life-tracker__turn-count">Turn: {this.turnCount}</div>
         <div class="life-tracker__button" onClick={() => TrackerActions.takeDamage(1)}>
           -
         </div>
@@ -40,6 +41,10 @@ export default defineComponent({
   column-gap: 10px;
 
   font-size: 24px;
+}
+
+.life-tracker__turn-count {
+  padding-right: 10px;
 }
 
 .life-tracker__button:hover {
