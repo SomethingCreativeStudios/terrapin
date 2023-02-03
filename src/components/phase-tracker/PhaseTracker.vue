@@ -1,7 +1,7 @@
 <script lang="tsx">
 import { defineComponent, ref } from 'vue';
 import { PhaseType, TurnPhase } from '~/models/phases.model';
-import { phaseSubject } from '~/watchers/phase.watcher';
+import { phaseSubject } from '~/subjects';
 import { useGameState } from '~/composables';
 
 const { nextPhase } = useGameState();

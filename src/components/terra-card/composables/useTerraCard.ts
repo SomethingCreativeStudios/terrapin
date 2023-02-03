@@ -78,7 +78,7 @@ function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents
 }
 
 function onTap(cardId: string, cardState: Ref<string>, containerType: ContainerType) {
-  const { setMeta } = useGameState();
+  const { setMeta, getMeta } = useGameState();
 
   if (containerType !== ContainerType.FREE_POSITION) return;
 
@@ -88,6 +88,7 @@ function onTap(cardId: string, cardState: Ref<string>, containerType: ContainerT
     cardState.value = 'tapped';
   }
 
+  console.log(getMeta(cardId).value?.baseCard?.oracleId);
   setMeta(cardId, { isTapped: cardState.value === 'tapped' });
 }
 

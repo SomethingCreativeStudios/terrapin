@@ -1,6 +1,6 @@
 import { createMachine, interpret } from 'xstate';
 import { PaymentActions } from '~/actions';
-import { useZone, useDialog, useGameState, UserAction } from '~/composables';
+import { useZone, useDialog, useGameState, UserAction, useCard } from '~/composables';
 import { Card, ManaCost } from '~/models/card.model';
 import { NumberPromptDialogModel } from '~/models/dialog.model';
 import { ZoneType } from '~/models/zone.model';
@@ -31,6 +31,7 @@ enum ManaPaymentSteps {
 interface ManaPaymentContext {
   card: Card;
   castingCost?: ManaCost;
+  startingZone: ZoneType;
   prompt: {
     xValue?: number;
   };
@@ -107,9 +108,12 @@ function castSpell(card: Card, castingCost?: ManaCost) {
 }
 
 function buildService(card: Card, castingCost?: ManaCost) {
+  const { moveCard, findZoneNameFromCard } = useZone();
+
   const castService = interpret(manaPayment);
   castService.machine.context.card = card;
   castService.machine.context.castingCost = castingCost;
+  castService.machine.context.startingZone = findZoneNameFromCard(card.cardId);
 
   setUpTransitions(castService, {
     [makeTransitionString('start', ManaPaymentSteps.INITIAL)]: (_: any, service: StateInterrupter<ManaPaymentContext>) => service.send(ManaPaymentActions.NEXT),
@@ -131,9 +135,9 @@ function tempNext(_: StateContext<ManaPaymentContext>, service: StateInterrupter
 }
 
 function moveToStack(state: StateContext<ManaPaymentContext>, service: StateInterrupter<ManaPaymentContext>) {
-  const { addCardToZone } = useZone();
+  const { moveCard, findZoneNameFromCard } = useZone();
 
-  addCardToZone(ZoneType.stack, state.context.card.cardId);
+  moveCard(findZoneNameFromCard(state.context.card.cardId), ZoneType.stack, state.context.card.cardId);
   service.send(ManaPaymentActions.NEXT);
 }
 
@@ -169,12 +173,12 @@ function resolveTargets(_: StateContext<ManaPaymentContext>, service: StateInter
 }
 
 async function payForSpell(ctx: StateContext<ManaPaymentContext>, service: StateInterrupter<ManaPaymentContext>) {
-  const { moveCard, removeCardInZone } = useZone();
+  const { moveCard } = useZone();
   const { setUserAction, playLand } = useGameState();
   const card = ctx.context.card;
 
   if (card.cardTypes.includes('Land')) {
-    moveCard(ZoneType.hand, ZoneType.battlefield, ctx.context.card.cardId);
+    moveCard(ZoneType.stack, ZoneType.battlefield, ctx.context.card.cardId);
     service.send(ManaPaymentActions.NEXT);
     playLand();
     return;
@@ -187,7 +191,7 @@ async function payForSpell(ctx: StateContext<ManaPaymentContext>, service: State
   const isSpell = ctx.context.card.cardTypes.includes('Instant') || ctx.context.card.cardTypes.includes('Sorcery');
 
   if (wasPaid && !isSpell) {
-    moveCard(ZoneType.hand, ZoneType.battlefield, ctx.context.card.cardId);
+    moveCard(ZoneType.stack, ZoneType.battlefield, ctx.context.card.cardId);
   } else if (wasPaid) {
     const { getMeta } = useGameState();
     const cardState = getMeta(ctx.context.card.cardId);
@@ -196,12 +200,15 @@ async function payForSpell(ctx: StateContext<ManaPaymentContext>, service: State
       if (ability.canDo()) ability.do();
     });
 
-    moveCard(ZoneType.hand, ZoneType.graveyard, ctx.context.card.cardId);
+    moveCard(ZoneType.stack, ZoneType.graveyard, ctx.context.card.cardId);
+  }
+
+  if (!wasPaid) {
+    moveCard(ZoneType.stack, ctx.context.startingZone, ctx.context.card.cardId);
   }
 
   service.send(ManaPaymentActions.NEXT);
   setUserAction(UserAction.NOTHING);
-  removeCardInZone(ZoneType.stack, card.cardId);
 }
 
 function makeTransitionString(...args: string[]) {

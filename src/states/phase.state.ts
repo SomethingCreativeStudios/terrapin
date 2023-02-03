@@ -1,7 +1,7 @@
 import { createMachine, interpret, actions, RaiseAction } from 'xstate';
 import { PhaseType, TurnPhase } from '~/models/phases.model';
 import { setUpTransitions } from './shared';
-import { phaseSubject } from '~/watchers/phase.watcher';
+import { phaseSubject } from '~/subjects';
 
 const { raise } = actions;
 

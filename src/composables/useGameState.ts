@@ -3,7 +3,7 @@ import { Interpreter, AnyEventObject, ResolveTypegenMeta, TypegenDisabled, BaseA
 import { CardState, ManaType } from '~/models/card.model';
 import { PhaseType, TurnPhase } from '~/models/phases.model';
 import { startPhases } from '~/states/phase.state';
-import { phaseSubject } from '~/watchers/phase.watcher';
+import { phaseSubject } from '~/subjects';
 
 type PhaseState = Interpreter<
   any,
