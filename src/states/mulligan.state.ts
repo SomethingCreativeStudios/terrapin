@@ -1,5 +1,5 @@
 import { createMachine, assign, interpret } from 'xstate';
-import { useZone, useDialog, useGameState } from '~/composables';
+import { useZone, useDialog, useGameState, GameStateEvent, useEvents } from '~/composables';
 import { ZoneType } from '~/models/zone.model';
 import { setUpTransitions, StateContext, StateInterrupter } from './shared';
 import { HandActions } from '~/actions';
@@ -56,11 +56,15 @@ const mulliganState = createMachine({
 });
 
 function startMulligan() {
+  const { emitEvent } = useEvents();
   const { nextPhase } = useGameState();
   const service = buildService();
 
+  emitEvent(GameStateEvent.MULLIGAN, {});
+
   service.onDone(() => {
     nextPhase();
+    emitEvent(GameStateEvent.NORMAL, {});
   });
 
   service.start();
@@ -91,13 +95,13 @@ function onMulligan(_: StateContext<MulliganContext>, service: StateInterrupter<
 }
 
 async function onChoice(state: StateContext<MulliganContext>, service: StateInterrupter<MulliganContext>) {
-  const { askQuestion } = useDialog();
+  const { askQuestion, toChoice } = useDialog();
   const numberOfMulligans = state.context.count;
 
   const isFirst = numberOfMulligans === 0 ? '' : `<br> You will need to send ${numberOfMulligans} back`;
-  const choice = await askQuestion(`Do you want to keep this hand?${isFirst}`, ['Keep', 'Mulligan']);
+  const choice = await askQuestion(`Do you want to keep this hand?${isFirst}`, toChoice<string>(['Keep', 'Mulligan']));
 
-  if (choice === 'Keep') {
+  if (choice.value === 'Keep') {
     service.send(MulliganSteps.CHOICE__KEEP);
   } else {
     service.send(MulliganSteps.CHOICE__MULLIGAN);

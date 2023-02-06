@@ -17,6 +17,8 @@ export enum CardBusEventName {
   UNTAP_CARD = 'untap-card',
   STACK_CARDS = 'stack-card',
   LINE_CARDS = 'line-card',
+  TARGET_CARD = 'target-card',
+  UNTARGET_CARD = 'untarget-card',
 }
 export interface CardPositionEvent {
   ids: string[];

@@ -1,13 +1,14 @@
 <script lang="tsx">
-import { defineComponent, onMounted, watch } from 'vue';
+import { defineComponent, onMounted, PropType, watch } from 'vue';
+import { DialogChoice } from '~/models/dialog.model';
 
 export default defineComponent({
   name: 'input-button',
   components: {},
   props: {
     choice: {
-      type: String,
-      default: '',
+      type: Object as PropType<DialogChoice<any>>,
+      default: () => ({ label: '', value: '' }),
     },
 
     validator: {
@@ -33,7 +34,7 @@ export default defineComponent({
   render() {
     return (
       <button class="input-block__choice" disabled={this.isDisabled}>
-        {this.choice}
+        {this.choice.label}
       </button>
     );
   },

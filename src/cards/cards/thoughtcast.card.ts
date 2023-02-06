@@ -10,6 +10,7 @@ export class ThoughtcastCard extends BaseCard {
     super(card);
 
     this.castingCosts.push(new AffinityCastingCost(card, 'Cast'));
+    this.castingCosts.push(new AffinityCastingCost(card, 'Cast Affinity'));
 
     this.abilities.push(new DrawAbility(card, 2));
   }

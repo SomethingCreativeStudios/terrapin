@@ -35,7 +35,7 @@ export default defineComponent({
     const cardState = getMeta(props.card.cardId);
 
     if (props.containerType === ContainerType.SORTABLE || props.containerType === ContainerType.CARD_DIALOG) {
-      return { cardClass, cardImage, onTap, onCardClick, onCardHover };
+      return { cardClass, cardState, cardImage, onTap, onCardClick, onCardHover };
     }
 
     return { draggable, cardClass, cardImage, cardState, onTap, onCardClick, onCardHover };
@@ -55,7 +55,7 @@ export default defineComponent({
     return (
       <div
         ref="draggable"
-        class={{ ...this.cardClass, 'terra-card--disabled': this.disabled }}
+        class={{ ...this.cardClass, 'terra-card--targeted': this.cardState?.targeted, 'terra-card--disabled': this.disabled }}
         onClick={this.onCardClick}
         onContextmenu={this.onContextMenu}
         onDblclick={this.onTap}
@@ -139,6 +139,17 @@ $card-height: 170px;
   outline: 3px solid yellow;
 }
 
+.terra-card--targeted .terra-card__image {
+  outline: 3px solid rgb(249, 131, 13);
+}
+
+body[user-action='picking_targets'] {
+  .selected .terra-card__image,
+  .terra-card--targeted .terra-card__image {
+    outline: 3px solid rgb(249, 131, 13);
+  }
+}
+
 .selected {
   z-index: 310;
 }
@@ -152,14 +163,6 @@ $card-height: 170px;
     transition: all 0.2s ease-in-out;
     width: $card-width;
     height: $card-height;
-  }
-}
-
-.terra-card.terra-card--dialog:hover {
-  // z-index: 10000;
-
-  .terra-card__image {
-    // transform: scale(2);
   }
 }
 

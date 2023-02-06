@@ -4,6 +4,7 @@ import { CardState, ManaType } from '~/models/card.model';
 import { PhaseType, TurnPhase } from '~/models/phases.model';
 import { startPhases } from '~/states/phase.state';
 import { phaseSubject } from '~/subjects';
+import { useEvents } from './useEvents';
 
 type PhaseState = Interpreter<
   any,
@@ -21,6 +22,12 @@ export enum UserAction {
   PAYING_MANA = 'paying-mana',
   MULLIGAN = 'mulligan',
   PICKING_TARGETS = 'picking_targets',
+}
+
+export enum GameStateEvent {
+  PICKING_TARGETS = '[GAME STATE] picking-targets',
+  NORMAL = '[GAME STATE] normal',
+  MULLIGAN = '[GAME STATE] mulligan',
 }
 
 const state = reactive({
@@ -58,8 +65,17 @@ function getUserAction() {
 }
 
 function setUserAction(userAction: UserAction) {
+  const { emitEvent } = useEvents();
   state.currentUserAction = userAction;
   document.body.setAttribute('user-action', state.currentUserAction);
+
+  if (userAction === UserAction.PICKING_TARGETS) {
+    emitEvent(GameStateEvent.PICKING_TARGETS, {});
+  }
+
+  if (userAction === UserAction.MULLIGAN) {
+    emitEvent(GameStateEvent.MULLIGAN, {});
+  }
 }
 
 function getTurnCount() {
@@ -140,6 +156,18 @@ function nextPhase() {
   state.phaseState.send('NEXT');
 }
 
+function getAllTargets() {
+  return computed(() =>
+    Object.entries(state.cardMeta).reduce((acc, [_, value]) => {
+      return value.targeted ? acc.concat(value?.baseCard?.cardId) : acc;
+    }, [] as string[])
+  );
+}
+
+function clearTargets() {
+  Object.entries(state.cardMeta).forEach(([key]) => (state.cardMeta[key].targeted = false));
+}
+
 export function useGameState() {
   return {
     setUp,
@@ -163,5 +191,7 @@ export function useGameState() {
     getLandsPlayed,
     setMaxLandsPerTurn,
     getMaxLandsPerTurn,
+    getAllTargets,
+    clearTargets,
   };
 }

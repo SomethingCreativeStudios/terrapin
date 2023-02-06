@@ -1,6 +1,7 @@
 <script lang="tsx">
 import { ComputedRef, defineComponent, reactive, toRefs } from 'vue';
 import { useEvents, DialogEvents } from '~/composables';
+import { ActionDialogModel, DialogChoice } from '~/models/dialog.model';
 import InputButton from '../input-button';
 import InputTitle from '../input-title';
 
@@ -10,22 +11,24 @@ export default defineComponent({
   props: {},
   setup() {
     const state = reactive({
+      id: '',
       question: '' as string | (() => ComputedRef<string>),
-      choices: [],
+      choices: [] as DialogChoice<any>[],
       clickOnValid: false,
       validators: {} as Record<string, () => ComputedRef<boolean>>,
     });
     const { onEvent, emitEvent } = useEvents();
 
-    onEvent(DialogEvents.PROMPT, ({ question, choices, validators, clickOnValid }) => {
+    onEvent(DialogEvents.PROMPT, ({ id, question, choices, validators, clickOnValid }: ActionDialogModel<any>) => {
+      state.id = id;
       state.choices = choices;
       state.question = question;
       state.validators = validators;
       state.clickOnValid = clickOnValid;
     });
 
-    function onClick(choice: string) {
-      emitEvent(`${DialogEvents.PROMPT}-response`, { choice });
+    function onClick(choice: DialogChoice<any>) {
+      emitEvent(`${state.id}-dialog-response`, { choice });
       state.question = '';
     }
 
@@ -38,7 +41,7 @@ export default defineComponent({
     }
 
     return (
-      <div class="input-block">
+      <div class="input-block" key={this.id}>
         <input-title class="input-block__question" title={this.question}></input-title>
         <div class="input-block__choices">
           {this.choices.map((choice) => (
@@ -48,7 +51,7 @@ export default defineComponent({
               onClick={() => this.onClick(choice)}
               choice={choice}
               clickOnValid={this.clickOnValid}
-              validator={this.validators?.[choice]}
+              validator={this.validators?.[choice.label]}
             ></input-button>
           ))}
         </div>

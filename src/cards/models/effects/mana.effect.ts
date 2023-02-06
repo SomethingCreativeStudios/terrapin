@@ -1,6 +1,7 @@
 import { TrackerActions } from '~/actions';
 import { useDialog } from '~/composables';
 import { Card, ManaType } from '~/models/card.model';
+import { DialogChoice } from '~/models/dialog.model';
 import { Effect } from './effect';
 
 export class ManaEffect extends Effect {
@@ -10,9 +11,10 @@ export class ManaEffect extends Effect {
 
   async do(): Promise<void> {
     const { askQuestion } = useDialog();
+    const toChoice = (manaType: ManaType) => ({ label: manaType, value: manaType } as DialogChoice<ManaType>);
 
-    const manaColor = await askQuestion('Pick Mana Type', [ManaType.WHITE, ManaType.BLUE, ManaType.BLACK, ManaType.RED, ManaType.GREEN]);
+    const manaColor = await askQuestion<ManaType>('Pick Mana Type', [ManaType.WHITE, ManaType.BLUE, ManaType.BLACK, ManaType.RED, ManaType.GREEN].map(toChoice));
 
-    TrackerActions.addMana(manaColor as ManaType, this.amount);
+    TrackerActions.addMana(manaColor.value, this.amount);
   }
 }

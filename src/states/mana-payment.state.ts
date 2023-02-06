@@ -1,7 +1,8 @@
 import { createMachine, interpret } from 'xstate';
 import { PaymentActions } from '~/actions';
+import { CastingCost } from '~/cards/models/casting-cost/casting-cost';
 import { useZone, useDialog, useGameState, UserAction, useCard } from '~/composables';
-import { Card, ManaCost } from '~/models/card.model';
+import { Card, CardPosition, ManaCost } from '~/models/card.model';
 import { NumberPromptDialogModel } from '~/models/dialog.model';
 import { ZoneType } from '~/models/zone.model';
 import { setUpTransitions, StateContext, StateInterrupter } from './shared';
@@ -30,11 +31,17 @@ enum ManaPaymentSteps {
 
 interface ManaPaymentContext {
   card: Card;
-  castingCost?: ManaCost;
+  options: CastingOptions;
   startingZone: ZoneType;
   prompt: {
     xValue?: number;
   };
+}
+
+export interface CastingOptions {
+  cardPos?: CardPosition;
+  castingCost?: ManaCost;
+  skipAuto?: boolean;
 }
 
 const manaPayment = createMachine({
@@ -102,17 +109,33 @@ const manaPayment = createMachine({
   },
 });
 
-function castSpell(card: Card, castingCost?: ManaCost) {
-  const service = buildService(card, castingCost);
-  service.start();
+async function castSpell(card: Card, options?: CastingOptions) {
+  const { getMeta } = useGameState();
+  const state = getMeta(card.cardId).value;
+  const service = buildService(card, options);
+
+  const cardCastingCosts = state.cardClass.castingCosts;
+  if (cardCastingCosts.length === 0 || options?.skipAuto) {
+    service.start();
+  } else if (cardCastingCosts.length === 1) {
+    cardCastingCosts[0].cast();
+  } else {
+    const { askQuestion } = useDialog();
+    const cost = await askQuestion<CastingCost>(
+      'Pick Casting Method',
+      cardCastingCosts.map((cost) => ({ label: cost.label || '', value: cost }))
+    );
+
+    cost.value.cast();
+  }
 }
 
-function buildService(card: Card, castingCost?: ManaCost) {
-  const { moveCard, findZoneNameFromCard } = useZone();
+function buildService(card: Card, options?: CastingOptions) {
+  const { findZoneNameFromCard } = useZone();
 
   const castService = interpret(manaPayment);
   castService.machine.context.card = card;
-  castService.machine.context.castingCost = castingCost;
+  castService.machine.context.options = options ?? {};
   castService.machine.context.startingZone = findZoneNameFromCard(card.cardId);
 
   setUpTransitions(castService, {
@@ -174,10 +197,17 @@ function resolveTargets(_: StateContext<ManaPaymentContext>, service: StateInter
 
 async function payForSpell(ctx: StateContext<ManaPaymentContext>, service: StateInterrupter<ManaPaymentContext>) {
   const { moveCard } = useZone();
-  const { setUserAction, playLand } = useGameState();
+  const { setUserAction, playLand, setMeta, canPlayLand } = useGameState();
   const card = ctx.context.card;
 
   if (card.cardTypes.includes('Land')) {
+    if (!canPlayLand().value) {
+      moveCard(ZoneType.stack, ctx.context.startingZone, ctx.context.card.cardId);
+      service.send(ManaPaymentActions.NEXT);
+      return;
+    }
+
+    setMeta(card.cardId, { position: ctx.context.options?.cardPos });
     moveCard(ZoneType.stack, ZoneType.battlefield, ctx.context.card.cardId);
     service.send(ManaPaymentActions.NEXT);
     playLand();
@@ -186,11 +216,12 @@ async function payForSpell(ctx: StateContext<ManaPaymentContext>, service: State
 
   setUserAction(UserAction.PAYING_MANA);
 
-  const wasPaid = await PaymentActions.wasPaid(ctx.context.castingCost || card.manaCost);
+  const wasPaid = await PaymentActions.wasPaid(ctx.context.options?.castingCost || card.manaCost);
 
   const isSpell = ctx.context.card.cardTypes.includes('Instant') || ctx.context.card.cardTypes.includes('Sorcery');
 
   if (wasPaid && !isSpell) {
+    setMeta(card.cardId, { position: ctx.context.options?.cardPos });
     moveCard(ZoneType.stack, ZoneType.battlefield, ctx.context.card.cardId);
   } else if (wasPaid) {
     const { getMeta } = useGameState();
@@ -200,6 +231,7 @@ async function payForSpell(ctx: StateContext<ManaPaymentContext>, service: State
       if (ability.canDo()) ability.do();
     });
 
+    setMeta(card.cardId, { position: ctx.context.options?.cardPos });
     moveCard(ZoneType.stack, ZoneType.graveyard, ctx.context.card.cardId);
   }
 

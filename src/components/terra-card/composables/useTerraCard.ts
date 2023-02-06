@@ -1,6 +1,5 @@
-import { emit } from 'process';
 import { computed, Ref, ref } from 'vue';
-import { useEvents, useDraggable, DraggableEvents, ContainerBusEvents, useZone, CardBusEventName, useGameState } from '~/composables';
+import { useEvents, useDraggable, DraggableEvents, ContainerBusEvents, useZone, CardBusEventName, useGameState, UserAction } from '~/composables';
 import { Card, CardPosition } from '~/models/card.model';
 import { EventEmitter } from '~/models/event-emitter.model';
 import { ContainerType } from '~/models/zone.model';
@@ -17,10 +16,11 @@ function buildClasses(cardState: Ref<string>, containerType: ContainerType) {
 
 function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents: EventEmitter, draggable: Ref<null>, cardState: Ref<string>, containerType: ContainerType) {
   const { emitEvent, onEvent } = useEvents();
-  const { setMeta } = useGameState();
+  const { setMeta, getUserAction } = useGameState();
   const isSelected = () => draggable.value && (draggable.value as HTMLElement).classList.contains('selected');
 
   dragEvents.listen(DraggableEvents.ON_POSITION_MOVE, ({ offset }: { offset: CardPosition }) => {
+    if (getUserAction().value === UserAction.PICKING_TARGETS) return;
     if (!draggable.value) return;
     if (!isSelected()) return;
 
@@ -30,6 +30,7 @@ function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents
   });
 
   onEvent(DraggableEvents.ON_POSITION_MOVE, ({ offset, senderId }: { offset: CardPosition; senderId: string }) => {
+    if (getUserAction().value === UserAction.PICKING_TARGETS) return;
     if (!draggable.value) return;
     if (cardId === senderId) return;
     if (!isSelected()) return;
@@ -41,6 +42,7 @@ function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents
   });
 
   onEvent(CardBusEventName.POSITION_UPDATE, ({ pos, cardId: senderId, zIndex }: { pos: CardPosition; cardId: string; zIndex?: 0 }) => {
+    if (getUserAction().value === UserAction.PICKING_TARGETS) return;
     if (!draggable.value) return;
     if (cardId !== senderId) return;
     if (!isSelected()) return;
@@ -57,12 +59,14 @@ function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents
   });
 
   onEvent(CardBusEventName.TOGGLE_TAP_CARD, () => {
+    if (getUserAction().value === UserAction.PICKING_TARGETS) return;
     if (!isSelected()) return;
 
     onTap(cardId, cardState, containerType);
   });
 
   onEvent(CardBusEventName.TAP_CARD, ({ ids }: { ids: string[] }) => {
+    if (getUserAction().value === UserAction.PICKING_TARGETS) return;
     if (containerType !== ContainerType.FREE_POSITION) return;
     if (!ids.includes(cardId)) return;
 
@@ -70,6 +74,7 @@ function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents
   });
 
   onEvent(CardBusEventName.UNTAP_CARD, ({ ids }: { ids: string[] }) => {
+    if (getUserAction().value === UserAction.PICKING_TARGETS) return;
     if (containerType !== ContainerType.FREE_POSITION) return;
     if (!ids.includes(cardId)) return;
 
@@ -78,8 +83,9 @@ function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents
 }
 
 function onTap(cardId: string, cardState: Ref<string>, containerType: ContainerType) {
-  const { setMeta, getMeta } = useGameState();
+  const { setMeta, getMeta, getUserAction } = useGameState();
 
+  if (getUserAction().value === UserAction.PICKING_TARGETS) return;
   if (containerType !== ContainerType.FREE_POSITION) return;
 
   if (cardState.value === 'tapped') {
@@ -88,11 +94,22 @@ function onTap(cardId: string, cardState: Ref<string>, containerType: ContainerT
     cardState.value = 'tapped';
   }
 
-  console.log(getMeta(cardId).value?.baseCard?.oracleId);
+  console.log(getMeta(cardId).value?.baseCard?.oracleId, getMeta(cardId).value?.baseCard?.name);
   setMeta(cardId, { isTapped: cardState.value === 'tapped' });
 }
 
 function onCardClick(e: any, card: Card, containerType: ContainerType) {
+  const { getUserAction, setMeta, getMeta } = useGameState();
+
+  if (getUserAction().value === UserAction.PICKING_TARGETS) {
+    const { emitEvent } = useEvents();
+    const isTargeted = getMeta(card.cardId)?.value?.targeted;
+
+    setMeta(card.cardId, { targeted: !isTargeted });
+    emitEvent(isTargeted ? CardBusEventName.UNTARGET_CARD : CardBusEventName.TARGET_CARD, { cardId: card.cardId });
+    return;
+  }
+
   if (containerType === ContainerType.SORTABLE) return;
 
   const { emitEvent } = useEvents();

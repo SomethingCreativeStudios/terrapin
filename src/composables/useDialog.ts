@@ -2,15 +2,16 @@ import { computed, ComputedRef, reactive } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 import { Card } from '~/models/card.model';
 import { useEvents } from './useEvents';
-import { CardDialogModel, DialogModel, PromptDialogModel } from '~/models/dialog.model';
+import { ActionDialogModel, CardDialogModel, DialogChoice, DialogModel, PromptDialogModel } from '~/models/dialog.model';
 import { shuffleDeck } from '~/actions/deck.action';
 import { ZoneType } from '~/models/zone.model';
+import { useGameState, UserAction } from './useGameState';
 
 export const enum DialogEvents {
   PROMPT = 'dialog-prompt',
 }
 
-const state = reactive({ dialogs: [] as DialogModel[] });
+const state = reactive({ dialogs: [] as DialogModel[], actionDialogs: [] as ActionDialogModel<any>[] });
 
 async function selectFrom(model: CardDialogModel): Promise<Card[]> {
   return new Promise((resolve) => {
@@ -49,28 +50,84 @@ function promptUser(prompt: PromptDialogModel) {
   });
 }
 
-function askQuestion(question: string, choices: string[], validators: Record<string, () => ComputedRef<boolean>> = {}): Promise<string> {
+function askQuestion<T>(question: string, choices: DialogChoice<T>[], validators: Record<string, () => ComputedRef<boolean>> = {}): Promise<DialogChoice<T>> {
   return new Promise((resolve) => {
     const { emitEvent, onEvent } = useEvents();
+    const id = `dialog-${uuidv4()}`;
 
-    emitEvent(DialogEvents.PROMPT, { question, choices, validators });
-    onEvent(`${DialogEvents.PROMPT}-response`, ({ choice }) => resolve(choice));
+    state.actionDialogs.push({ id, question, choices, validators, clickOnValid: false });
+    emitEvent(DialogEvents.PROMPT, { id, question, choices, validators } as ActionDialogModel<T>);
+    onEvent(`${id}-dialog-response`, ({ choice }) => {
+      showNextActionDialog(id);
+      resolve(choice);
+    });
   });
 }
 
-function askComplexQuestion(question: () => ComputedRef<string>, choices: string[], validators: Record<string, () => ComputedRef<boolean>> = {}, clickOnValid = false): Promise<string> {
+function askComplexQuestion<T>(
+  question: () => ComputedRef<string>,
+  choices: DialogChoice<T>[],
+  validators: Record<string, () => ComputedRef<boolean>> = {},
+  clickOnValid = false
+): Promise<DialogChoice<T>> {
   return new Promise((resolve) => {
     const { emitEvent, onEvent } = useEvents();
+    const id = `dialog-${uuidv4()}`;
 
-    emitEvent(DialogEvents.PROMPT, { question, choices, validators, clickOnValid });
-    onEvent(`${DialogEvents.PROMPT}-response`, ({ choice }) => resolve(choice));
+    state.actionDialogs.push({ id, question, choices, validators, clickOnValid });
+    emitEvent(DialogEvents.PROMPT, { id, question, choices, validators, clickOnValid });
+    onEvent(`${id}-dialog-response`, ({ choice }) => {
+      showNextActionDialog(id);
+      resolve(choice);
+    });
   });
+}
+
+async function findTargets(question = 'Select Targets') {
+  const { getAllTargets, clearTargets, setUserAction } = useGameState();
+
+  setUserAction(UserAction.PICKING_TARGETS);
+
+  await askQuestion(question, [
+    { label: 'done', value: 'done' },
+    { label: 'cancel', value: 'cancel' },
+  ]);
+
+  console.log(getAllTargets().value);
+
+  setUserAction(UserAction.NOTHING);
+  clearTargets();
 }
 
 function getActiveDialogs() {
   return computed(() => state.dialogs);
 }
 
+function toChoice<T>(items: any[]) {
+  return items.map((item) => ({ label: item, value: item } as DialogChoice<T>));
+}
+
 export function useDialog() {
-  return { selectFrom, askComplexQuestion, askQuestion, getActiveDialogs, promptUser };
+  return { selectFrom, askComplexQuestion, askQuestion, getActiveDialogs, promptUser, findTargets, toChoice };
+}
+
+// @ts-ignore
+window.findTargets = findTargets;
+
+// @ts-ignore
+window.askQuestion = askQuestion;
+
+function showNextActionDialog(id: string) {
+  const { emitEvent } = useEvents();
+
+  const index = state.actionDialogs.findIndex((dialog) => dialog.id === id);
+  const nextDialog = state.actionDialogs[index - 1];
+
+  if (nextDialog) {
+    setTimeout(() => {
+      emitEvent(DialogEvents.PROMPT, nextDialog);
+    }, 20);
+  }
+
+  state.actionDialogs = state.actionDialogs.filter((dialog) => dialog.id !== id);
 }

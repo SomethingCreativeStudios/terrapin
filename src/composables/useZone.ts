@@ -3,6 +3,7 @@ import interact from 'interactjs';
 import { onMounted, reactive, ref } from 'vue';
 import { Card, CardPosition } from '~/models/card.model';
 import { ContainerType, Zone, ZoneType } from '~/models/zone.model';
+import { castSpell } from '~/states';
 import { useGameState } from './useGameState';
 
 const { setMeta, getMeta } = useGameState();
@@ -18,11 +19,13 @@ function addCardToZone(zone: ZoneType, id: string) {
   state.zones[zone].cardIds.push(id);
 
   const { position } = getMeta(id).value ?? {};
-  setMeta(id, { position: updateCardPosition(zone, position ?? { x: 0, y: 0 }, position) });
+  setMeta(id, { zone, position: updateCardPosition(zone, position ?? { x: 0, y: 0 }, position) });
 }
 
 function moveCard(fromZone: ZoneType, toZone: ZoneType, id: string, moveToBottom = false) {
   state.zones[fromZone].cardIds = state.zones[fromZone].cardIds.filter((cardId) => cardId !== id);
+
+  setMeta(id, { zone: toZone });
 
   if (!state.zones[toZone].cardIds.some((cardId) => cardId === id)) {
     if (moveToBottom) {
@@ -214,16 +217,18 @@ function moveCardDragDrop(newZone: ZoneType, element: HTMLElement, newPosition?:
   const card = getCard(element);
   const currentZone = findZoneNameFromCard(card.cardId);
   const { position } = getMeta(card.cardId).value ?? {};
-  setMeta(card.cardId, { position: updateCardPosition(newZone, position ?? { x: 0, y: 0 }, newPosition) });
+  const updatedPosition = updateCardPosition(newZone, position ?? { x: 0, y: 0 }, newPosition);
 
+  if (newZone === ZoneType.battlefield) {
+    castSpell(card, { cardPos: updatedPosition });
+    return;
+  }
+
+  setMeta(card.cardId, { position: updatedPosition });
   moveCard(currentZone || '', newZone, card.cardId);
 
   if (moveSelected) {
     state.zones[currentZone || ''].selected.forEach((card) => {
-      //card.position = updateCardPosition(newZone, card?.position ?? { x: 0, y: 0 }, newPosition);
-      //const { position } = getMeta(card).value ?? {};
-      //setMeta(card, { position: updateCardPosition(newZone, position ?? { x: 0, y: 0 }, newPosition) });
-
       moveCard(currentZone || '', newZone, card);
     });
   }

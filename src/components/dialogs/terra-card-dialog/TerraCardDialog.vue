@@ -5,7 +5,7 @@ import { ContainerType } from '~/models/zone.model';
 import TerraDialog from '../terra-dialog';
 import TerraCard from '../../terra-card';
 import { CardDialogModel } from '~/models/dialog.model';
-import { useEvents, useMenu } from '~/composables';
+import { useEvents, useGameState, useMenu, UserAction } from '~/composables';
 import { computed } from '@vue/reactivity';
 
 export default defineComponent({
@@ -19,6 +19,10 @@ export default defineComponent({
   },
   setup(props) {
     const selected = ref([] as Card[]);
+    const isPickingTargets = computed(() => {
+      const { getUserAction } = useGameState();
+      return getUserAction().value === UserAction.PICKING_TARGETS;
+    });
 
     const hoveredCard = ref(null as Card | null);
     const cardNameFilter = ref('');
@@ -34,7 +38,7 @@ export default defineComponent({
       return `${action} Cards (${props.dialog.min - selected.value.length})`;
     });
 
-    return { hoveredCard, hoveredX, hoveredY, selected, cardNameFilter, selectText, shuffleOnClose };
+    return { hoveredCard, isPickingTargets, hoveredX, hoveredY, selected, cardNameFilter, selectText, shuffleOnClose };
   },
   methods: {
     onCardHover(e: any) {
@@ -112,15 +116,17 @@ export default defineComponent({
             ),
             footer: ({ close, cancel }: { close: () => void; cancel: () => void }) => (
               <div class="flex two-col">
-                <button
-                  type="button"
-                  class="btn-green"
-                  disabled={this.selected.length === 0 || this.selected.length < (this.dialog?.min ?? 1)}
-                  onClick={this.dialog.canMove ? this.onContextMenu : close}
-                  aria-label="Close modal"
-                >
-                  {this.selectText}
-                </button>
+                {this.isPickingTargets ? null : (
+                  <button
+                    type="button"
+                    class="btn-green"
+                    disabled={this.selected.length === 0 || this.selected.length < (this.dialog?.min ?? 1)}
+                    onClick={this.dialog.canMove ? this.onContextMenu : close}
+                    aria-label="Close modal"
+                  >
+                    {this.selectText}
+                  </button>
+                )}
                 <button type="button" class="btn-cancel" onClick={cancel} aria-label="Close modal">
                   Cancel
                 </button>

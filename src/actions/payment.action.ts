@@ -1,11 +1,12 @@
 import { computed } from 'vue';
 import { useDialog, useGameState } from '~/composables';
 import { ManaCost, ManaType } from '~/models/card.model';
+import { DialogChoice } from '~/models/dialog.model';
 import { TrackerActions } from '.';
 import { manaPipToString, meetsPip } from './helper/mana-cost.helper';
 
 export async function wasPaid(manaCost: ManaCost): Promise<boolean> {
-  const { askComplexQuestion } = useDialog();
+  const { askComplexQuestion, toChoice } = useDialog();
   const choices = [] as boolean[];
   const { getFloatingMana } = useGameState();
   const tempFloating = { ...getFloatingMana().value };
@@ -31,9 +32,9 @@ export async function wasPaid(manaCost: ManaCost): Promise<boolean> {
         return `Pay Mana? ${manaPipToString(manaPip)}`;
       });
 
-    const choice = await askComplexQuestion(
+    const choice = (await askComplexQuestion(
       question,
-      ['Done', 'Cancel'],
+      toChoice(['Done', 'Cancel']),
       {
         Done: () =>
           computed(() => {
@@ -45,9 +46,9 @@ export async function wasPaid(manaCost: ManaCost): Promise<boolean> {
           }),
       },
       true
-    );
+    )) as DialogChoice<string>;
 
-    if (choice === 'Cancel') {
+    if (choice.value === 'Cancel') {
       const { setFloatingMana } = useGameState();
       setFloatingMana(tempFloating);
       return false;
@@ -57,7 +58,7 @@ export async function wasPaid(manaCost: ManaCost): Promise<boolean> {
     useMana(getUsedMana().value);
     TrackerActions.clearUsedMana();
 
-    choices.push(choice === 'Done');
+    choices.push(choice.value === 'Done');
   }
 
   return choices.every(Boolean);

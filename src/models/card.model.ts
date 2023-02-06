@@ -27,8 +27,9 @@ export interface CardState {
   isTapped: boolean;
   position?: CardPosition;
   zone?: ZoneType;
+  targeted?: boolean;
   baseCard: Card;
-  cardClass: BaseCard
+  cardClass: BaseCard;
 }
 
 export interface CardPosition {

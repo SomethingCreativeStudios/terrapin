@@ -24,7 +24,7 @@ export class AffinityCastingCost extends CastingCost {
     }).length;
 
     if (numberOfArtifacts === 0) {
-      castSpell(this.getMeta().baseCard);
+      castSpell(this.getMeta().baseCard, { skipAuto: true });
       return;
     }
 
@@ -32,6 +32,6 @@ export class AffinityCastingCost extends CastingCost {
 
     found.genericCost -= numberOfArtifacts;
 
-    castSpell(this.getMeta().baseCard);
+    castSpell(this.getMeta().baseCard, { skipAuto: true });
   }
 }
