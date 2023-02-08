@@ -5,8 +5,8 @@ import { castSpell } from '~/states';
 import { CastingCost } from './casting-cost';
 
 export class AffinityCastingCost extends CastingCost {
-  constructor(card: Card, label: string, private cardType = 'Artifact') {
-    super(card, label);
+  constructor(card: Card, label: string, private cardType = 'Artifact', validZones = [ZoneType.hand]) {
+    super(card, label, validZones);
   }
 
   canCast(): boolean {
@@ -24,7 +24,7 @@ export class AffinityCastingCost extends CastingCost {
     }).length;
 
     if (numberOfArtifacts === 0) {
-      castSpell(this.getMeta().baseCard, { skipAuto: true });
+      castSpell(this.getMeta().baseCard, { cardPos: this.getMeta().position, skipAuto: true });
       return;
     }
 
@@ -32,6 +32,6 @@ export class AffinityCastingCost extends CastingCost {
 
     found.genericCost -= numberOfArtifacts;
 
-    castSpell(this.getMeta().baseCard, { skipAuto: true });
+    castSpell(this.getMeta().baseCard, { cardPos: this.getMeta().position, skipAuto: true });
   }
 }

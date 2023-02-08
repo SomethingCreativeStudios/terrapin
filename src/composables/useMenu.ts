@@ -4,6 +4,7 @@ import { useDeck, useDialog, useGameState, useZone } from '~/composables';
 import { startMulligan, castSpell } from '~/states';
 import { HandActions, DeckActions, BattlefieldActions } from '~/actions';
 import { NumberPromptDialogModel } from '~/models/dialog.model';
+import { BaseCard } from '~/cards/base.card';
 
 interface MenuOptions {
   items: MenuOption[];
@@ -53,69 +54,22 @@ function getCardMenu(card: Card, state: CardState, position: CardPosition) {
   const { findZoneNameFromCard } = useZone();
   const zoneType = findZoneNameFromCard(card.cardId);
 
-  if (zoneType === ZoneType.hand) {
-    return buildCardHandMenu(card, state, position);
-  }
-
-  if (zoneType === ZoneType.battlefield) {
-    return buildCardBattlefieldMenu(card, state, position);
-  }
+  return buildCardMenu(card, state, position, zoneType);
 }
 
 export function useMenu() {
   return { getMenu, getCardMenu, buildMoveMenu };
 }
 
-function buildCardBattlefieldMenu(card: Card, state: CardState, position: CardPosition): MenuOptions {
-  const mappedAbilities =
-    state?.cardClass?.abilities?.map((ability) => ({
-      label: ability.text ?? 'Do Cost',
-      customClass: ability.canDo() ? '' : 'disabled',
-      onClick: () => ability.canDo() && ability.do(),
-    })) ?? [];
-
+function buildCardMenu(card: Card, state: CardState, position: CardPosition, zone: ZoneType): MenuOptions {
   return {
     iconFontClass: 'iconfont',
-    customClass: 'battlefield-menu',
+    customClass: `${zone}-menu`,
     minWidth: 150,
     x: position.x,
     y: position.y,
     zIndex: 10000,
-    items: [...mappedAbilities],
-  };
-}
-
-function buildCardHandMenu(card: Card, state: CardState, position: CardPosition): MenuOptions {
-  const { canPlayLand } = useGameState();
-  const isLand = card.cardTypes.includes('Land');
-
-  const mappedCosts =
-    state?.cardClass?.castingCosts?.map((cost) => ({
-      label: cost.label ?? 'Cast',
-      customClass: cost.canCast() ? '' : 'disabled',
-      onClick: () => cost.canCast() && cost.cast(),
-    })) ?? [];
-
-  const defaultCosts = [
-    {
-      label: isLand ? 'Play' : 'Cast',
-      customClass: isLand && !canPlayLand().value ? 'disabled' : '',
-      onClick: async () => {
-        if ((isLand && canPlayLand().value) || !isLand) {
-          castSpell(card);
-        }
-      },
-    },
-  ];
-
-  return {
-    iconFontClass: 'iconfont',
-    customClass: 'hand-menu',
-    minWidth: 150,
-    x: position.x,
-    y: position.y,
-    zIndex: 10000,
-    items: state.cardClass.castingCosts.length === 0 ? defaultCosts : mappedCosts,
+    items: [...getAllAbilities(state?.cardClass ?? null, zone), ...getAllCastingCost(card, state?.cardClass, zone)],
   };
 }
 
@@ -274,4 +228,52 @@ function viewAll(zone: ZoneType, canShuffle = false) {
       selectFrom({ cards: cards, canMove: true, currentZone: zone, showShuffle: canShuffle });
     },
   };
+}
+
+function getAllAbilities(base: BaseCard | null, zone: ZoneType) {
+  return (
+    base?.abilities
+      ?.map((ability) => ({
+        validZones: ability.validZones,
+        label: ability.text ?? 'Do Cost',
+        customClass: ability.canDo() ? '' : 'disabled',
+        onClick: () => ability.canDo() && ability.do(),
+      }))
+      ?.filter((cast) => cast.validZones.includes(zone)) ?? []
+  );
+}
+
+function getAllCastingCost(card: Card, base: BaseCard | null, zone: ZoneType) {
+  const mappedCosts =
+    base?.castingCosts
+      ?.map((cost) => ({
+        validZones: cost.validZones,
+        label: cost.label ?? 'Cast',
+        customClass: cost.canCast() ? '' : 'disabled',
+        onClick: () => cost.canCast() && cost.cast(),
+      }))
+      ?.filter((cast) => cast.validZones.includes(zone)) ?? [];
+
+  const defaultCosts = [{ label: 'Card Info', customClass: '', onClick: () => console.log(card.oracleId, card.name) }];
+
+  if (mappedCosts.length === 0) {
+    const { canPlayLand } = useGameState();
+    const isLand = card.cardTypes.includes('Land');
+
+    return zone === ZoneType.hand
+      ? defaultCosts.concat([
+          {
+            label: isLand ? 'Play' : 'Cast',
+            customClass: isLand && !canPlayLand().value ? 'disabled' : '',
+            onClick: async () => {
+              if ((isLand && canPlayLand().value) || !isLand) {
+                castSpell(card);
+              }
+            },
+          },
+        ])
+      : defaultCosts;
+  }
+
+  return [...defaultCosts, ...mappedCosts];
 }

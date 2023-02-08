@@ -93,10 +93,12 @@ async function findTargets(question = 'Select Targets') {
     { label: 'cancel', value: 'cancel' },
   ]);
 
-  console.log(getAllTargets().value);
+  const targets = [...getAllTargets().value];
 
   setUserAction(UserAction.NOTHING);
   clearTargets();
+
+  return targets;
 }
 
 function getActiveDialogs() {

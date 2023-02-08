@@ -1,4 +1,5 @@
 import { v4 as uuid } from 'uuid';
+import { ZoneType } from '~/models/zone.model';
 import { Cost } from '../costs/cost';
 import { Effect } from '../effects/effect';
 import { AbilityType } from '../xmage/ability-type.enum';
@@ -7,7 +8,7 @@ export abstract class Ability {
 
   public type = AbilityType.ACTIVATED;
 
-  constructor(public costs: Cost[], public effect: Effect, public text: string) {}
+  constructor(public costs: Cost[], public effect: Effect, public text: string, public validZones = [ZoneType.battlefield]) {}
 
   abstract canDo(): boolean;
 

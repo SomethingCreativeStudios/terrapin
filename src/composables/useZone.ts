@@ -5,6 +5,7 @@ import { Card, CardPosition } from '~/models/card.model';
 import { ContainerType, Zone, ZoneType } from '~/models/zone.model';
 import { castSpell } from '~/states';
 import { useGameState } from './useGameState';
+import { zoneChangesSubject } from '~/subjects';
 
 const { setMeta, getMeta } = useGameState();
 
@@ -34,6 +35,8 @@ function moveCard(fromZone: ZoneType, toZone: ZoneType, id: string, moveToBottom
       state.zones[toZone].cardIds.push(id);
     }
   }
+
+  zoneChangesSubject.next({ newZone: toZone, cardIds: [id] });
 }
 
 function reorderCards(zone: ZoneType, oldIndex: number, newIndex: number) {
@@ -220,6 +223,7 @@ function moveCardDragDrop(newZone: ZoneType, element: HTMLElement, newPosition?:
   const updatedPosition = updateCardPosition(newZone, position ?? { x: 0, y: 0 }, newPosition);
 
   if (newZone === ZoneType.battlefield) {
+    setMeta(card.cardId, { position: updatedPosition });
     castSpell(card, { cardPos: updatedPosition });
     return;
   }

@@ -76,6 +76,10 @@ function setUserAction(userAction: UserAction) {
   if (userAction === UserAction.MULLIGAN) {
     emitEvent(GameStateEvent.MULLIGAN, {});
   }
+
+  if (userAction === UserAction.NOTHING) {
+    emitEvent(GameStateEvent.NORMAL, {});
+  }
 }
 
 function getTurnCount() {

@@ -16,5 +16,5 @@ export abstract class Effect {
     return this.cardMeta.value ?? (this.cardMeta as CardState);
   }
 
-  abstract do(): void;
+  abstract do(meta?: any): void;
 }
