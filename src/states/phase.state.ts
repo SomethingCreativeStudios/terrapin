@@ -23,11 +23,13 @@ const phaseState = createMachine({
     initial: {
       on: {
         NEXT: 'uptap',
+        END_TURN: 'end_turn',
       },
     },
     uptap: {
-      after: {
-        500: { target: 'upkeep' },
+      on: {
+        NEXT: 'upkeep',
+        END_TURN: 'end_turn',
       },
       entry: [() => onStart(TurnPhase.UPTAP)],
       exit: [() => onEnd(TurnPhase.UPTAP)],
@@ -35,6 +37,7 @@ const phaseState = createMachine({
     upkeep: {
       on: {
         NEXT: 'draw',
+        END_TURN: 'end_turn',
       },
       entry: [() => onStart(TurnPhase.UPKEEP)],
       exit: [() => onEnd(TurnPhase.UPKEEP)],
@@ -42,6 +45,7 @@ const phaseState = createMachine({
     draw: {
       on: {
         NEXT: 'main_one',
+        END_TURN: 'end_turn',
       },
       entry: [() => onStart(TurnPhase.DRAW)],
       exit: [() => onEnd(TurnPhase.DRAW)],
@@ -49,7 +53,7 @@ const phaseState = createMachine({
     main_one: {
       on: {
         NEXT: { target: 'combat' },
-        SKIP_COMBAT: { target: 'combat', actions: raise('END') as RaiseAction<{ type: 'END' }> },
+        END_TURN: 'end_turn',
       },
       entry: [() => onStart(TurnPhase.MAIN_ONE)],
       exit: [() => onEnd(TurnPhase.MAIN_ONE)],
@@ -58,6 +62,8 @@ const phaseState = createMachine({
       on: {
         NEXT: 'attackers',
         END: 'end_combat',
+        SKIP_COMBAT: { target: 'main_two' },
+        END_TURN: 'end_turn',
       },
       entry: [() => onStart(TurnPhase.COMBAT)],
       exit: [() => onEnd(TurnPhase.COMBAT)],
@@ -65,6 +71,7 @@ const phaseState = createMachine({
     attackers: {
       on: {
         NEXT: 'blockers',
+        END_TURN: 'end_turn',
       },
       entry: [() => onStart(TurnPhase.DECLARE_ATTACKERS)],
       exit: [() => onEnd(TurnPhase.DECLARE_ATTACKERS)],
@@ -72,6 +79,7 @@ const phaseState = createMachine({
     blockers: {
       on: {
         NEXT: 'dbl_damage',
+        END_TURN: 'end_turn',
       },
       entry: [() => onStart(TurnPhase.DECLARE_BLOCKERS)],
       exit: [() => onEnd(TurnPhase.DECLARE_BLOCKERS)],
@@ -79,6 +87,7 @@ const phaseState = createMachine({
     dbl_damage: {
       on: {
         NEXT: 'damage',
+        END_TURN: 'end_turn',
       },
       entry: [() => onStart(TurnPhase.SPECIAL_DAMAGE)],
       exit: [() => onEnd(TurnPhase.SPECIAL_DAMAGE)],
@@ -86,6 +95,7 @@ const phaseState = createMachine({
     damage: {
       on: {
         NEXT: 'end_combat',
+        END_TURN: 'end_turn',
       },
       entry: [() => onStart(TurnPhase.DAMAGE)],
       exit: [() => onEnd(TurnPhase.DAMAGE)],
@@ -93,6 +103,7 @@ const phaseState = createMachine({
     end_combat: {
       on: {
         NEXT: 'main_two',
+        END_TURN: 'end_turn',
       },
       entry: [() => onStart(TurnPhase.END_COMBAT)],
       exit: [() => onEnd(TurnPhase.END_COMBAT)],
@@ -100,13 +111,15 @@ const phaseState = createMachine({
     main_two: {
       on: {
         NEXT: 'end_turn',
+        END_TURN: 'end_turn',
       },
       entry: [() => onStart(TurnPhase.MAIN_TWO)],
       exit: [() => onEnd(TurnPhase.MAIN_TWO)],
     },
     end_turn: {
-      after: {
-        500: { target: 'clean_up' },
+      on: {
+        NEXT: 'clean_up',
+        END_TURN: 'clean_up',
       },
       entry: [() => onStart(TurnPhase.END_TURN)],
       exit: [() => onEnd(TurnPhase.END_TURN)],
@@ -114,6 +127,7 @@ const phaseState = createMachine({
     clean_up: {
       on: {
         NEXT: 'uptap',
+        END_TURN: 'uptap',
       },
       entry: [() => onStart(TurnPhase.CLEAN_UP)],
       exit: [() => onEnd(TurnPhase.CLEAN_UP)],
@@ -142,6 +156,4 @@ function onStart(phase: TurnPhase) {
   phaseSubject.next({ type: PhaseType.START, phase });
 }
 
-function onEnd(phase: TurnPhase) {
-  phaseSubject.next({ type: PhaseType.END, phase });
-}
+function onEnd(phase: TurnPhase) {}

@@ -1,7 +1,7 @@
 <script lang="tsx">
 import { defineComponent } from 'vue';
-import { TerraCard, TerraZone, TerraHoverCard, TerraCardDialog, TerraActionBar, TerraPromptDialog, LifeTracker, ManaTracker, PhaseTracker } from './components';
-import { useDeck, useCard, useHotKey, useDialog, useZone, useGameState } from '~/composables';
+import { TerraCard, TerraZone, TerraHoverCard, TerraCardDialog, TerraActionBar, TerraPromptDialog, LifeTracker, ManaTracker, PhaseTracker, GameActions } from './components';
+import { useDeck, useCard, useHotKey, useDialog, useZone, useGameState, usePhase } from '~/composables';
 import { ContainerType, ZoneType } from './models/zone.model';
 
 const dialogComponents = {
@@ -11,7 +11,7 @@ const dialogComponents = {
 
 export default defineComponent({
   name: 'app',
-  components: { TerraCard, TerraZone, TerraHoverCard, TerraCardDialog, TerraActionBar, LifeTracker, ManaTracker, PhaseTracker },
+  components: { TerraCard, TerraZone, TerraHoverCard, TerraCardDialog, TerraActionBar, LifeTracker, ManaTracker, PhaseTracker, GameActions },
   setup() {
     const { getDeck, loadDeck } = useDeck();
     const { setUp } = useCard();
@@ -19,12 +19,14 @@ export default defineComponent({
     const { setUpHotKeys } = useHotKey();
     const { getActiveDialogs } = useDialog();
     const { setUp: gameStateSetUp } = useGameState();
+    const { setUp: startPhases } = usePhase();
 
     gameStateSetUp();
     setUpHotKeys();
     setUp();
-    loadDeck('');
+    loadDeck('8cast');
     addZone(ZoneType.stack, ContainerType.CARD_DIALOG, true);
+    startPhases();
 
     return { deck: getDeck(), dialogs: getActiveDialogs() };
   },
@@ -33,7 +35,7 @@ export default defineComponent({
     const dialogBlocks = this.dialogs.map((dialog) => {
       // @ts-ignore
       const Component = dialogComponents[dialog.dialog];
-      return <Component dialog={dialog} />;
+      return <Component key={dialog.eventId} dialog={dialog} />;
     });
 
     return (
@@ -42,6 +44,7 @@ export default defineComponent({
           <terra-hover-card></terra-hover-card>
           <mana-tracker class="mana-tracker"></mana-tracker>
           <phase-tracker class="phase-tracker"></phase-tracker>
+          <game-actions class="game-actions"></game-actions>
         </terra-zone>
         <terra-zone class="zone-hand" name={ZoneType.hand} containerType={ContainerType.SORTABLE} color={`#2e2e2e`}></terra-zone>
         <terra-zone class="zone-deck" name={ZoneType.deck} containerType={ContainerType.TOP_CARD} color={`#3c3b3b`} disableHover={true}></terra-zone>
@@ -89,6 +92,12 @@ export default defineComponent({
   position: absolute;
   left: 14px;
   bottom: 18px;
+}
+
+.game-actions {
+  position: absolute;
+  right: 10px;
+  top: 10px;
 }
 
 .phase-tracker {

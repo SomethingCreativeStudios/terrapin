@@ -1,5 +1,5 @@
 import { createMachine, assign, interpret } from 'xstate';
-import { useZone, useDialog, useGameState, GameStateEvent, useEvents } from '~/composables';
+import { useZone, useDialog, useGameState, GameStateEvent, useEvents, usePhase } from '~/composables';
 import { ZoneType } from '~/models/zone.model';
 import { setUpTransitions, StateContext, StateInterrupter } from './shared';
 import { HandActions } from '~/actions';
@@ -57,7 +57,7 @@ const mulliganState = createMachine({
 
 function startMulligan() {
   const { emitEvent } = useEvents();
-  const { nextPhase } = useGameState();
+  const { nextPhase } = usePhase();
   const service = buildService();
 
   emitEvent(GameStateEvent.MULLIGAN, {});
@@ -125,6 +125,7 @@ async function onSendBack(state: StateContext<MulliganContext>, service: StateIn
       title: `Pick ${numberOfMulligans} to send back: `,
       min: numberOfMulligans,
       max: numberOfMulligans,
+      dialogGroup: 'mulligan',
     })
   );
 

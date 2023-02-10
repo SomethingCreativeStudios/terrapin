@@ -2,9 +2,9 @@
 import { defineComponent, ref } from 'vue';
 import { PhaseType, TurnPhase } from '~/models/phases.model';
 import { phaseSubject } from '~/subjects';
-import { useGameState } from '~/composables';
+import { usePhase } from '~/composables';
 
-const { nextPhase } = useGameState();
+const { nextPhase } = usePhase();
 
 export default defineComponent({
   name: 'phase-tracker',
@@ -58,8 +58,7 @@ export default defineComponent({
         {makePhaseCounter(TurnPhase.MAIN_ONE)}
         {makeSubBlock([TurnPhase.COMBAT, TurnPhase.DECLARE_ATTACKERS, TurnPhase.DECLARE_BLOCKERS, TurnPhase.SPECIAL_DAMAGE, TurnPhase.DAMAGE, TurnPhase.END_COMBAT])}
         {makePhaseCounter(TurnPhase.MAIN_TWO)}
-        {makePhaseCounter(TurnPhase.END_TURN)}
-        {makePhaseCounter(TurnPhase.CLEAN_UP)}
+        {makeSubBlock([TurnPhase.END_TURN, TurnPhase.CLEAN_UP])}
       </div>
     );
   },
@@ -68,7 +67,7 @@ export default defineComponent({
 
 <style scoped lang="scss">
 .phase-tracker {
-  width: 100%;
+  width: 1110px;
   height: 30px;
   display: flex;
   column-gap: 10px;
@@ -91,6 +90,7 @@ export default defineComponent({
 
 .phase-tracker__block {
   position: relative;
+
   .phase-tracker__block--item {
     position: absolute;
     visibility: hidden;

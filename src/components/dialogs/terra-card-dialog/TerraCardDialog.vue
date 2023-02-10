@@ -1,11 +1,11 @@
 <script lang="tsx">
 import { defineComponent, PropType, ref } from 'vue';
 import { Card } from '~/models/card.model';
-import { ContainerType } from '~/models/zone.model';
+import { ContainerType, ZoneType } from '~/models/zone.model';
 import TerraDialog from '../terra-dialog';
 import TerraCard from '../../terra-card';
 import { CardDialogModel } from '~/models/dialog.model';
-import { useEvents, useGameState, useMenu, UserAction } from '~/composables';
+import { useDialog, useEvents, useGameState, useMenu, UserAction, useZone } from '~/composables';
 import { computed } from '@vue/reactivity';
 
 export default defineComponent({
@@ -38,7 +38,18 @@ export default defineComponent({
       return `${action} Cards (${props.dialog.min - selected.value.length})`;
     });
 
-    return { hoveredCard, isPickingTargets, hoveredX, hoveredY, selected, cardNameFilter, selectText, shuffleOnClose };
+    const cards = computed(() => {
+      if (props.dialog.cards?.length) {
+        return props.dialog.cards;
+      }
+
+      const { getCardsInZone } = useZone();
+      const { getMeta } = useGameState();
+
+      return getCardsInZone(props.dialog.zone ?? ZoneType.stack).value.map((id) => getMeta(id).value?.baseCard);
+    });
+
+    return { cards, hoveredCard, isPickingTargets, hoveredX, hoveredY, selected, cardNameFilter, selectText, shuffleOnClose };
   },
   methods: {
     onCardHover(e: any) {
@@ -74,15 +85,15 @@ export default defineComponent({
       // @ts-ignore
       this.$contextmenu(
         buildMoveMenu(this.dialog.currentZone, { x: e.x, y: e.y }, this.selected, () => {
-          this.onClose('selected');
+          //this.onClose('selected');
         })
       );
     },
   },
   render() {
     return (
-      <div>
-        <terra-dialog show={true} width={this.dialog.width} height={this.dialog.height} onScroll={this.onMouseLeave} onClose={this.onClose}>
+      <div key={this.dialog.eventId}>
+        <terra-dialog group={this.dialog.dialogGroup} onScroll={this.onMouseLeave} onClose={this.onClose}>
           {{
             header: () => (
               <div class="terra-card-dialog__header">
@@ -90,7 +101,7 @@ export default defineComponent({
                 {this.dialog.showShuffle ? (
                   <div class="shuffle-box">
                     <label class="shuffle-box__label" for="shuffle-box">
-                      Shuffle on close?
+                      Shuffle?
                     </label>
                     <input class="shuffle-box__box" type="checkbox" text="Shuffle on close?" id="shuffle-box" v-model={this.shuffleOnClose} />
                   </div>
@@ -99,7 +110,7 @@ export default defineComponent({
             ),
             body: () => (
               <div class="terra-card-dialog__body">
-                {this.dialog.cards.filter(this.cardFilter).map((card) => (
+                {this.cards.filter(this.cardFilter).map((card) => (
                   <terra-card
                     class={this.selected.find((sel) => sel.cardId === card.cardId) ? 'selected' : ''}
                     card={card}
@@ -128,7 +139,7 @@ export default defineComponent({
                   </button>
                 )}
                 <button type="button" class="btn-cancel" onClick={cancel} aria-label="Close modal">
-                  Cancel
+                  Done
                 </button>
               </div>
             ),
@@ -157,9 +168,11 @@ export default defineComponent({
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  align-content: baseline;
 
-  padding: 80px;
   padding-top: 41px;
+  padding-left: 10px;
+  gap: 14px;
 }
 
 .terra-card--hovered {

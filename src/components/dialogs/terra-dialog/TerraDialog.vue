@@ -1,8 +1,11 @@
 <script lang="tsx">
 import { defineComponent, ref } from 'vue';
+import Vue3DraggableResizable from 'vue3-draggable-resizable';
+import { useDialog } from '~/composables';
 
 export default defineComponent({
   name: 'terra-dialog',
+  components: { Vue3DraggableResizable },
   props: {
     width: {
       type: String,
@@ -13,32 +16,64 @@ export default defineComponent({
       default: '60%',
     },
 
+    group: {
+      type: String,
+      default: 'default',
+    },
+
     show: {
       type: Boolean,
-      default: false,
+      default: true,
     },
   },
   setup(props, ctx) {
     const showDialog = ref(props.show);
+    const selected = ref(false);
+
     const close = () => {
-      showDialog.value = false;
+      //showDialog.value = false;
       ctx.emit('close', { type: 'selected' });
     };
     const cancel = () => {
-      showDialog.value = false;
+      //showDialog.value = false;
       ctx.emit('close', { type: 'canceled' });
     };
 
-    return { showDialog, close, cancel };
+    const { getCache } = useDialog();
+    const cache = getCache(props.group);
+
+    return { showDialog, selected, cache, close, cancel };
   },
   methods: {
     onScroll() {
       this.$emit('scroll');
     },
+
+    onResize({ x, y, w: width, h: height }: { x: number; y: number; w: number; h: number }) {
+      const { updateCache } = useDialog();
+      updateCache(this.group, { x, y, width, height });
+    },
+
+    onDragEnd({ x, y }: { x: number; y: number }) {
+      const { updateCache } = useDialog();
+      updateCache(this.group, { x, y });
+    },
   },
   render() {
     return (
-      <div class="terra-dialog" name="modal-fade" v-show={this.showDialog}>
+      <vue3-draggable-resizable
+        class={`terra-dialog terra-dialog--${this.selected ? 'selected' : 'deselected'}`}
+        name="modal-fade"
+        initW={this.cache.width}
+        initH={this.cache.height}
+        x={this.cache.x}
+        y={this.cache.y}
+        v-show={this.showDialog}
+        onDragEnd={this.onDragEnd}
+        onResizeEnd={this.onResize}
+        onActivated={() => (this.selected = true)}
+        onDeactivated={() => (this.selected = false)}
+      >
         <div class="modal-backdrop">
           <div class="modal" role="dialog" aria-labelledby="modalTitle" aria-describedby="modalDescription">
             <header class="modal-header" id="modalTitle">
@@ -61,24 +96,24 @@ export default defineComponent({
             </footer>
           </div>
         </div>
-      </div>
+      </vue3-draggable-resizable>
     );
   },
 });
 </script>
 
 <style scoped lang="scss">
+.terra-dialog {
+  z-index: 900;
+}
+
+.terra-dialog--selected {
+  z-index: 901;
+}
+
 .modal-backdrop {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: rgba(0, 0, 0, 0.3);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
+  width: 100%;
+  height: 100%;
 }
 
 .modal {
@@ -87,9 +122,9 @@ export default defineComponent({
   overflow-x: auto;
   display: flex;
   flex-direction: column;
-  width: v-bind(width);
-  height: v-bind(height);
   color: white;
+  width: 100%;
+  height: 100%;
 }
 
 .modal-header,
@@ -115,6 +150,9 @@ export default defineComponent({
   flex: 1;
   overflow-x: hidden;
   overflow-y: scroll;
+
+  width: 100%;
+  height: 100%;
 }
 
 .btn-close {

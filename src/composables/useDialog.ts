@@ -2,7 +2,7 @@ import { computed, ComputedRef, reactive } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 import { Card } from '~/models/card.model';
 import { useEvents } from './useEvents';
-import { ActionDialogModel, CardDialogModel, DialogChoice, DialogModel, PromptDialogModel } from '~/models/dialog.model';
+import { ActionDialogModel, CardDialogModel, DialogCache, DialogChoice, DialogModel, PromptDialogModel } from '~/models/dialog.model';
 import { shuffleDeck } from '~/actions/deck.action';
 import { ZoneType } from '~/models/zone.model';
 import { useGameState, UserAction } from './useGameState';
@@ -11,14 +11,25 @@ export const enum DialogEvents {
   PROMPT = 'dialog-prompt',
 }
 
-const state = reactive({ dialogs: [] as DialogModel[], actionDialogs: [] as ActionDialogModel<any>[] });
+const state = reactive({ dialogs: [] as DialogModel[], actionDialogs: [] as ActionDialogModel<any>[], cache: {} as Record<string, DialogCache> });
+
+//@ts-ignore
+window.state.dialog = state;
 
 async function selectFrom(model: CardDialogModel): Promise<Card[]> {
   return new Promise((resolve) => {
-    const dialogId = `dialog-${uuidv4()}`;
+    const dialogId = `dialog-${model.currentZone || uuidv4()}`;
     const { onEvent } = useEvents();
 
-    state.dialogs.push({ title: 'Select From:', width: '60%', height: '80%', ...model, dialog: 'terra-card-dialog', eventId: dialogId });
+    state.dialogs.push({
+      title: `${model.currentZone}:`,
+      width: '60%',
+      height: '80%',
+      ...model,
+      dialogGroup: model.dialogGroup || 'default',
+      dialog: 'terra-card-dialog',
+      eventId: dialogId,
+    });
 
     // clean up!!!!
     onEvent(dialogId, ({ selected, shuffle = false }: { selected: Card[]; shuffle: boolean }) => {
@@ -38,7 +49,7 @@ function promptUser(prompt: PromptDialogModel) {
     const dialogId = `dialog-${uuidv4()}`;
     const { onEvent } = useEvents();
 
-    state.dialogs.push({ title: 'Prompt', width: '25%', height: '23%', ...prompt, dialog: 'terra-prompt-dialog', eventId: dialogId });
+    state.dialogs.push({ title: 'Prompt', width: '25%', height: '23%', ...prompt, dialogGroup: prompt.dialogGroup || 'default', dialog: 'terra-prompt-dialog', eventId: dialogId });
 
     // clean up!!!!
     onEvent(dialogId, ({ response }: { response: any }) => {
@@ -109,8 +120,16 @@ function toChoice<T>(items: any[]) {
   return items.map((item) => ({ label: item, value: item } as DialogChoice<T>));
 }
 
+function getCache(group: string) {
+  return computed(() => state.cache[group] ?? { height: 660, width: 1355, x: 344, y: 108 });
+}
+
+function updateCache(group: string, cache: Partial<DialogCache>) {
+  state.cache[group] = { ...state.cache[group], ...cache };
+}
+
 export function useDialog() {
-  return { selectFrom, askComplexQuestion, askQuestion, getActiveDialogs, promptUser, findTargets, toChoice };
+  return { selectFrom, askComplexQuestion, askQuestion, getActiveDialogs, promptUser, getCache, updateCache, findTargets, toChoice };
 }
 
 // @ts-ignore

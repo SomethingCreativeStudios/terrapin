@@ -48,8 +48,9 @@ fn main() {
 }
 
 #[tauri::command]
-fn load_deck() -> Vec<Card> {
-    CardService::load_deck(r#".\test-decks\8cast.txt"#)
+fn load_deck(deck_name: String) -> Vec<Card> {
+    info!("{}", deck_name);
+    CardService::load_deck(format!(".\\test-decks\\{}.txt", deck_name).as_str())
 }
 
 #[tauri::command]

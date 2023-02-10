@@ -4,6 +4,13 @@ import { ZoneType } from './zone.model';
 
 export type DialogChoice<T> = { label: string; value: T };
 
+export interface DialogCache {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface ActionDialogModel<T> {
   id: string;
   clickOnValid: boolean;
@@ -23,10 +30,12 @@ export interface DialogModel {
   width?: string;
   height?: string;
   title?: string;
+  dialogGroup: string;
 }
 
 export interface CardDialogModel extends DialogModel {
-  cards: Card[];
+  cards?: Card[];
+  zone?: ZoneType;
   min?: number;
   max?: number;
   canMove?: boolean;

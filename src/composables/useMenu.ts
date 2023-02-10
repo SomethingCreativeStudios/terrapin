@@ -219,13 +219,9 @@ function viewAll(zone: ZoneType, canShuffle = false) {
   return {
     label: 'View All',
     onClick: () => {
-      const { getCardsInZone } = useZone();
-      const { getMeta } = useGameState();
       const { selectFrom } = useDialog();
-      const cardIds = getCardsInZone(zone);
-      const cards = cardIds.value.map((id) => getMeta(id).value?.baseCard);
 
-      selectFrom({ cards: cards, canMove: true, currentZone: zone, showShuffle: canShuffle });
+      selectFrom({ zone, canMove: true, currentZone: zone, showShuffle: canShuffle, dialogGroup: zone });
     },
   };
 }

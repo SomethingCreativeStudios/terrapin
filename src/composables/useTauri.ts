@@ -4,7 +4,7 @@ import { Card, convertPips, toCardColor } from '~/models/card.model';
 import { TauriCommands } from '~/models/tauri.commands';
 
 async function loadDeck(deckName: string): Promise<Card[]> {
-  const cards = await invoke<any[]>(TauriCommands.LOAD_DECK, { deck_name: deckName });
+  const cards = await invoke<any[]>(TauriCommands.LOAD_DECK, { deckName });
 
   return cards.map((item: any) => toModel(item));
 }

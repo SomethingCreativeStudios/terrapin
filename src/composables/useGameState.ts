@@ -2,20 +2,8 @@ import { computed, reactive } from 'vue';
 import { Interpreter, AnyEventObject, ResolveTypegenMeta, TypegenDisabled, BaseActionObject, ServiceMap, InterpreterStatus } from 'xstate';
 import { CardState, ManaType } from '~/models/card.model';
 import { PhaseType, TurnPhase } from '~/models/phases.model';
-import { startPhases } from '~/states/phase.state';
 import { phaseSubject } from '~/subjects';
 import { useEvents } from './useEvents';
-
-type PhaseState = Interpreter<
-  any,
-  any,
-  AnyEventObject,
-  {
-    value: any;
-    context: any;
-  },
-  ResolveTypegenMeta<TypegenDisabled, AnyEventObject, BaseActionObject, ServiceMap>
->;
 
 export enum UserAction {
   NOTHING = 'nothing',
@@ -39,7 +27,6 @@ const state = reactive({
   usedMana: {} as Record<ManaType, number>,
   cardMeta: {} as Record<string, CardState>,
   currentUserAction: UserAction.NOTHING,
-  phaseState: {} as PhaseState,
 });
 
 // @ts-ignore
@@ -47,7 +34,6 @@ window.state.gameState = state;
 
 function setUp() {
   document.body.setAttribute('user-action', state.currentUserAction);
-  state.phaseState = startPhases();
 
   phaseSubject.subscribe(({ type, phase }) => {
     if (type === PhaseType.START && phase === TurnPhase.UPKEEP) {
@@ -152,14 +138,6 @@ function setManyMeta(ids: string[], meta: Partial<CardState>) {
   });
 }
 
-function nextPhase() {
-  if (state.phaseState.status === InterpreterStatus.NotStarted) {
-    state.phaseState.start();
-  }
-
-  state.phaseState.send('NEXT');
-}
-
 function getAllTargets() {
   return computed(() =>
     Object.entries(state.cardMeta).reduce((acc, [_, value]) => {
@@ -175,7 +153,6 @@ function clearTargets() {
 export function useGameState() {
   return {
     setUp,
-    nextPhase,
     getTurnCount,
     setLifeTotal,
     getLifeTotal,

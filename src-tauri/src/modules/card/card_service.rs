@@ -4,6 +4,7 @@ extern crate reqwest;
 use crate::modules::card::card_types::{Card, CardMeta};
 use crate::modules::database::db::GLOBAL_CONNECTION;
 
+use log::{error, info};
 use rusqlite::{Error, Row};
 use serde::Serialize;
 use std::collections::HashMap;
@@ -24,6 +25,8 @@ pub struct CardService {}
 
 impl CardService {
     pub fn load_deck(deck_path: &str) -> Vec<Card> {
+        info!("{}", deck_path);
+
         let contents = fs::read_to_string(deck_path).expect("Something went wrong reading the file");
 
         let mut cards: Vec<ListCard> = Vec::new();
@@ -134,7 +137,7 @@ impl CardService {
                 scryfall_id: row.get(16).unwrap_or("".to_string()),
                 scryfall_illustration_id: row.get(17).unwrap_or("".to_string()),
                 uuid: row.get(18).unwrap_or("".to_string()),
-                scryfall_oracle_id:  row.get(19).unwrap_or("".to_string()),
+                scryfall_oracle_id: row.get(19).unwrap_or("".to_string()),
                 is_token: false,
             },
         })
