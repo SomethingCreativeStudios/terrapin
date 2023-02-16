@@ -21,6 +21,11 @@ export default defineComponent({
       default: 'default',
     },
 
+    defaults: {
+      type: Object,
+      default: {},
+    },
+
     show: {
       type: Boolean,
       default: true,
@@ -40,7 +45,7 @@ export default defineComponent({
     };
 
     const { getCache } = useDialog();
-    const cache = getCache(props.group);
+    const cache = getCache(props.group, props.defaults);
 
     return { showDialog, selected, cache, close, cancel };
   },

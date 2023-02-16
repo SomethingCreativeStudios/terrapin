@@ -35,7 +35,7 @@ export default defineComponent({
 
     return (
       <div class="terra-stack">
-        <terra-dialog group={this.dialog.dialogGroup}>
+        <terra-dialog group={this.dialog.dialogGroup} defaults={{ y: 50, x: 344, width: 1355, height: 288 }}>
           {{
             header: () => <div></div>,
             body: () => (

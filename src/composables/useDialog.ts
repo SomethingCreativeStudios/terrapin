@@ -155,8 +155,8 @@ function toChoice<T>(items: any[]) {
   return items.map((item) => ({ label: item, value: item } as DialogChoice<T>));
 }
 
-function getCache(group: string) {
-  return computed(() => state.cache[group] ?? { height: 660, width: 1355, x: 344, y: 108 });
+function getCache(group: string, defaults?: { height: number; width: number; x: number; y: number }) {
+  return computed(() => state.cache[group] ?? { height: defaults?.height ?? 660, width: defaults?.width ?? 1355, x: defaults?.x ?? 344, y: defaults?.y ?? 108 });
 }
 
 function updateCache(group: string, cache: Partial<DialogCache>) {
