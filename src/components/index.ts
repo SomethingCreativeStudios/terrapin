@@ -6,7 +6,8 @@ import LifeTracker from './life-tracker';
 import ManaTracker from './mana-tracker';
 import PhaseTracker from './phase-tracker';
 import GameActions from './game-actions';
+import TerraStack from './terra-stack';
 
 export * from './dialogs';
 
-export { TerraCard, ManaTracker, GameActions, LifeTracker, TerraHoverCard, TerraZone, TerraActionBar, PhaseTracker };
+export { TerraCard, ManaTracker, GameActions, LifeTracker, TerraHoverCard, TerraZone, TerraActionBar, PhaseTracker, TerraStack };

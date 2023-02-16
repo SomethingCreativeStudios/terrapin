@@ -84,7 +84,7 @@ function endTurn() {
 }
 
 export function usePhase() {
-  return { setUp, nextPhase, passPriority, skipCombat, endTurn };
+  return { setUp, nextPhase, passPriority, skipCombat, endTurn, waitForPriority};
 }
 
 function nextState() {

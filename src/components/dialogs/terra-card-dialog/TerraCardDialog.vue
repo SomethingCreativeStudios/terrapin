@@ -19,8 +19,9 @@ export default defineComponent({
   },
   setup(props) {
     const selected = ref([] as Card[]);
+    const { getUserAction, getTargetMeta } = useGameState();
+
     const isPickingTargets = computed(() => {
-      const { getUserAction } = useGameState();
       return getUserAction().value === UserAction.PICKING_TARGETS;
     });
 
@@ -46,7 +47,24 @@ export default defineComponent({
       const { getCardsInZone } = useZone();
       const { getMeta } = useGameState();
 
-      return getCardsInZone(props.dialog.zone ?? ZoneType.stack).value.map((id) => getMeta(id).value?.baseCard);
+      const foundCards = getCardsInZone(props.dialog.zone ?? ZoneType.stack).value.map((id) => getMeta(id).value?.baseCard);
+
+      if (isPickingTargets.value) {
+        return foundCards.sort((carda, cardb) => {
+          const doesAMeet = getTargetMeta().value?.targetFilter?.apply(carda);
+          const doesBMeet = getTargetMeta().value?.targetFilter?.apply(cardb);
+
+          if (doesAMeet == doesBMeet) return 0;
+
+          if (doesAMeet && !doesBMeet) return -1;
+
+          if (!doesAMeet && doesBMeet) return 1;
+
+          return 0;
+        });
+      }
+
+      return foundCards;
     });
 
     return { cards, hoveredCard, isPickingTargets, hoveredX, hoveredY, selected, cardNameFilter, selectText, shuffleOnClose };

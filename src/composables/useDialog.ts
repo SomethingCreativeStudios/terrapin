@@ -5,7 +5,8 @@ import { useEvents } from './useEvents';
 import { ActionDialogModel, CardDialogModel, DialogCache, DialogChoice, DialogModel, PromptDialogModel } from '~/models/dialog.model';
 import { shuffleDeck } from '~/actions/deck.action';
 import { ZoneType } from '~/models/zone.model';
-import { useGameState, UserAction } from './useGameState';
+import { TargetMeta, useGameState, UserAction } from './useGameState';
+import { Predicate, PredicateCollection } from '~/models/predicates.model';
 
 export const enum DialogEvents {
   PROMPT = 'dialog-prompt',
@@ -75,6 +76,22 @@ function askQuestion<T>(question: string, choices: DialogChoice<T>[], validators
   });
 }
 
+function askPriority<T>(): Promise<DialogChoice<T>> {
+  return new Promise((resolve) => {
+    const { emitEvent, onEvent } = useEvents();
+    const id = `dialog-priority-${uuidv4()}`;
+    const dialogData = { id, question: 'You Have Priority', choices: toChoice(['Pass']), validators: {}, clickOnValid: false };
+
+    state.actionDialogs.push(dialogData);
+
+    emitEvent(DialogEvents.PROMPT, dialogData);
+    onEvent(`${id}-dialog-response`, ({ choice }) => {
+      showNextActionDialog(id);
+      resolve(choice);
+    });
+  });
+}
+
 function askComplexQuestion<T>(
   question: () => ComputedRef<string>,
   choices: DialogChoice<T>[],
@@ -94,19 +111,37 @@ function askComplexQuestion<T>(
   });
 }
 
-async function findTargets(question = 'Select Targets') {
-  const { getAllTargets, clearTargets, setUserAction } = useGameState();
+function showStack() {
+  const id = `dialog-${uuidv4()}`;
 
-  setUserAction(UserAction.PICKING_TARGETS);
+  if (state.dialogs.find((dialog) => dialog.dialogGroup === 'stack')) {
+    return;
+  }
 
-  await askQuestion(question, [
-    { label: 'done', value: 'done' },
-    { label: 'cancel', value: 'cancel' },
-  ]);
+  state.dialogs.push({ dialogGroup: 'stack', dialog: 'terra-stack', eventId: id });
+}
+
+async function findTargets(question = 'Select Targets', affectedZones: ZoneType[], targetMeta: TargetMeta) {
+  const { getAllTargets, clearTargets, toggleTargetMode, meetTargetCount } = useGameState();
+
+  toggleTargetMode(targetMeta);
+
+  affectedZones.forEach((zone) => selectFrom({ zone, canMove: true, currentZone: zone, showShuffle: zone === ZoneType.deck, dialogGroup: zone }));
+
+  await askQuestion(
+    question,
+    [
+      { label: 'done', value: 'done' },
+      { label: 'cancel', value: 'cancel' },
+    ],
+    {
+      done: () => computed(() => !meetTargetCount().value),
+    }
+  );
 
   const targets = [...getAllTargets().value];
 
-  setUserAction(UserAction.NOTHING);
+  toggleTargetMode(targetMeta);
   clearTargets();
 
   return targets;
@@ -128,8 +163,12 @@ function updateCache(group: string, cache: Partial<DialogCache>) {
   state.cache[group] = { ...state.cache[group], ...cache };
 }
 
+function hasPriorityDialogs() {
+  return computed(() => state.actionDialogs.find((dialog) => dialog.id?.includes('-priority-')));
+}
+
 export function useDialog() {
-  return { selectFrom, askComplexQuestion, askQuestion, getActiveDialogs, promptUser, getCache, updateCache, findTargets, toChoice };
+  return { selectFrom, askComplexQuestion, askQuestion, getActiveDialogs, hasPriorityDialogs, promptUser, getCache, updateCache, findTargets, showStack, askPriority, toChoice };
 }
 
 // @ts-ignore

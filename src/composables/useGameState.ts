@@ -1,9 +1,21 @@
 import { computed, reactive } from 'vue';
-import { Interpreter, AnyEventObject, ResolveTypegenMeta, TypegenDisabled, BaseActionObject, ServiceMap, InterpreterStatus } from 'xstate';
-import { CardState, ManaType } from '~/models/card.model';
+import { Ability } from '~/cards/models/abilities/ability';
+import { StackCollection } from '~/cards/models/stack/stack-collection';
+import { StackItem } from '~/cards/models/stack/stack-item';
+import { Card, CardState, ManaType } from '~/models/card.model';
 import { PhaseType, TurnPhase } from '~/models/phases.model';
+import { PredicateCollection } from '~/models/predicates.model';
+import { ZoneType } from '~/models/zone.model';
 import { phaseSubject } from '~/subjects';
 import { useEvents } from './useEvents';
+import { usePhase } from './usePhases';
+import { useZone } from './useZone';
+
+export interface TargetMeta {
+  targetFilter: PredicateCollection<Card> | null;
+  maxTargets: number;
+  minTargets: number;
+}
 
 export enum UserAction {
   NOTHING = 'nothing',
@@ -26,7 +38,10 @@ const state = reactive({
   floatingMana: {} as Record<ManaType, number>,
   usedMana: {} as Record<ManaType, number>,
   cardMeta: {} as Record<string, CardState>,
+  abilities: {} as Record<string, Ability | null>,
+  stack: new StackCollection(),
   currentUserAction: UserAction.NOTHING,
+  targetMeta: {} as TargetMeta | null,
 });
 
 // @ts-ignore
@@ -55,6 +70,8 @@ function setUserAction(userAction: UserAction) {
   state.currentUserAction = userAction;
   document.body.setAttribute('user-action', state.currentUserAction);
 
+  state.targetMeta = null;
+
   if (userAction === UserAction.PICKING_TARGETS) {
     emitEvent(GameStateEvent.PICKING_TARGETS, {});
   }
@@ -66,6 +83,37 @@ function setUserAction(userAction: UserAction) {
   if (userAction === UserAction.NOTHING) {
     emitEvent(GameStateEvent.NORMAL, {});
   }
+}
+
+function toggleTargetMode(targetMeta: TargetMeta) {
+  if (state.currentUserAction === UserAction.PICKING_TARGETS) {
+    setUserAction(UserAction.NOTHING);
+  } else {
+    setUserAction(UserAction.PICKING_TARGETS);
+    state.targetMeta = targetMeta;
+  }
+}
+
+async function addToStack(item: StackItem, ability?: Ability) {
+  if (item.type === 'ABILITY' && ability) {
+    state.abilities = { ...(state.abilities ?? {}), [ability?.id]: ability };
+  }
+
+  if (item.type === 'SPELL') {
+    state.stack.addItem(item);
+  }
+}
+
+function isStackEmpty() {
+  return state.stack.isEmpty();
+}
+
+function getStack() {
+  return state.stack.getStack();
+}
+
+function getTargetMeta() {
+  return computed(() => state.targetMeta);
 }
 
 function getTurnCount() {
@@ -146,6 +194,20 @@ function getAllTargets() {
   );
 }
 
+function meetTargetCount() {
+  return computed(() => {
+    const targetCount = getAllTargets().value?.length ?? 0;
+    const minCards = state.targetMeta?.minTargets ?? 0;
+    const maxCards = state.targetMeta?.maxTargets ?? 0;
+
+    console.log(targetCount < minCards, targetCount > maxCards);
+    if (targetCount < minCards) return false;
+    if (targetCount > maxCards) return false;
+
+    return true;
+  });
+}
+
 function clearTargets() {
   Object.entries(state.cardMeta).forEach(([key]) => (state.cardMeta[key].targeted = false));
 }
@@ -174,5 +236,11 @@ export function useGameState() {
     getMaxLandsPerTurn,
     getAllTargets,
     clearTargets,
+    toggleTargetMode,
+    getTargetMeta,
+    meetTargetCount,
+    addToStack,
+    getStack,
+    isStackEmpty,
   };
 }

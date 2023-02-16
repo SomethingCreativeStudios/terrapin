@@ -17,6 +17,6 @@ export class EmryLurkerOfTheLochCard extends BaseCard {
 
     new EnterTheBattlefieldWatcher(card, new MillEffect(4, card, 'Mill')).watch();
 
-    this.abilities.push(new BaseAbility([new TapCost(card)], new CastCardsInGraveyardEffect(1, card, ''), 'Cast Card In Graveyard'));
+    this.abilities.push(new BaseAbility([new TapCost(card)], new CastCardsInGraveyardEffect(1, 1, card, ''), 'Cast Card In Graveyard'));
   }
 }

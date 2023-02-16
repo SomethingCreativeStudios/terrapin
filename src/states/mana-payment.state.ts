@@ -1,3 +1,4 @@
+import { clone } from 'ramda';
 import { createMachine, interpret } from 'xstate';
 import { PaymentActions } from '~/actions';
 import { CastingCost } from '~/cards/models/casting-cost/casting-cost';
@@ -133,7 +134,7 @@ async function castSpell(card: Card, options?: CastingOptions) {
 function buildService(card: Card, options?: CastingOptions) {
   const { findZoneNameFromCard } = useZone();
 
-  const castService = interpret(manaPayment);
+  const castService = interpret(clone(manaPayment));
   castService.machine.context.card = card;
   castService.machine.context.options = options ?? {};
   castService.machine.context.startingZone = findZoneNameFromCard(card.cardId);
@@ -197,7 +198,7 @@ function resolveTargets(_: StateContext<ManaPaymentContext>, service: StateInter
 
 async function payForSpell(ctx: StateContext<ManaPaymentContext>, service: StateInterrupter<ManaPaymentContext>) {
   const { moveCard } = useZone();
-  const { setUserAction, playLand, setMeta, canPlayLand } = useGameState();
+  const { playLand, setMeta, canPlayLand, addToStack, setUserAction, getUserAction } = useGameState();
   const card = ctx.context.card;
 
   if (card.cardTypes.includes('Land')) {
@@ -214,33 +215,22 @@ async function payForSpell(ctx: StateContext<ManaPaymentContext>, service: State
     return;
   }
 
+  const oldAction = getUserAction().value;
+
   setUserAction(UserAction.PAYING_MANA);
 
   const wasPaid = await PaymentActions.wasPaid(ctx.context.options?.castingCost || card.manaCost);
 
-  const isSpell = ctx.context.card.cardTypes.includes('Instant') || ctx.context.card.cardTypes.includes('Sorcery');
-
-  if (wasPaid && !isSpell) {
-    setMeta(card.cardId, { position: ctx.context.options?.cardPos });
-    moveCard(ZoneType.stack, ZoneType.battlefield, ctx.context.card.cardId);
-  } else if (wasPaid) {
-    const { getMeta } = useGameState();
-    const cardState = getMeta(ctx.context.card.cardId);
-
-    cardState.value.cardClass.abilities.forEach((ability) => {
-      if (ability.canDo()) ability.do();
-    });
-
-    setMeta(card.cardId, { position: ctx.context.options?.cardPos });
-    moveCard(ZoneType.stack, ZoneType.graveyard, ctx.context.card.cardId);
+  if (wasPaid) {
+    await addToStack({ id: card.cardId, type: 'SPELL', position: ctx.context.options?.cardPos });
   }
 
   if (!wasPaid) {
     moveCard(ZoneType.stack, ctx.context.startingZone, ctx.context.card.cardId);
   }
 
+  setUserAction(oldAction);
   service.send(ManaPaymentActions.NEXT);
-  setUserAction(UserAction.NOTHING);
 }
 
 function makeTransitionString(...args: string[]) {

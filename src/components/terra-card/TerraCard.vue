@@ -3,7 +3,7 @@ import { defineComponent, PropType, computed } from 'vue';
 import { setUpCard } from './composables/useTerraCard';
 import { Card } from '~/models/card.model';
 import { ContainerType } from '~/models/zone.model';
-import { useMenu, useGameState } from '~/composables';
+import { useMenu, useGameState, UserAction } from '~/composables';
 
 export default defineComponent({
   name: 'terra-card',
@@ -29,16 +29,20 @@ export default defineComponent({
     },
   },
   setup(props, ctx) {
-    const { getMeta } = useGameState();
+    const { getMeta, getTargetMeta, getUserAction, meetTargetCount } = useGameState();
     const { cardClass, draggable, onTap, onCardClick, onCardHover } = setUpCard(props.card, props.containerType, ctx);
+
+    const isTargeting = computed(() => getUserAction().value === UserAction.PICKING_TARGETS);
     const cardImage = computed(() => (props.flipCard ? './missing-image.jpeg' : props.card.imagePath));
     const cardState = getMeta(props.card.cardId);
 
+    const isATarget = computed(() => !isTargeting.value || ((getTargetMeta()?.value?.targetFilter?.apply(props.card) ?? true) && !meetTargetCount().value));
+
     if (props.containerType === ContainerType.SORTABLE || props.containerType === ContainerType.CARD_DIALOG) {
-      return { cardClass, cardState, cardImage, onTap, onCardClick, onCardHover };
+      return { cardClass, cardState, cardImage, isATarget, onTap, onCardClick, onCardHover };
     }
 
-    return { draggable, cardClass, cardImage, cardState, onTap, onCardClick, onCardHover };
+    return { draggable, cardClass, cardImage, cardState, isATarget, onTap, onCardClick, onCardHover };
   },
   methods: {
     onContextMenu(e: MouseEvent) {
@@ -55,7 +59,7 @@ export default defineComponent({
     return (
       <div
         ref="draggable"
-        class={{ ...this.cardClass, 'terra-card--targeted': this.cardState?.targeted, 'terra-card--disabled': this.disabled }}
+        class={{ ...this.cardClass, 'terra-card--targeted': this.cardState?.targeted, 'terra-card--disabled': this.disabled || !this.isATarget }}
         onClick={this.onCardClick}
         onContextmenu={this.onContextMenu}
         onDblclick={this.onTap}

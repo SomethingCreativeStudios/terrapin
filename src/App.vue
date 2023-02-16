@@ -1,17 +1,30 @@
 <script lang="tsx">
 import { defineComponent } from 'vue';
-import { TerraCard, TerraZone, TerraHoverCard, TerraCardDialog, TerraActionBar, TerraPromptDialog, LifeTracker, ManaTracker, PhaseTracker, GameActions } from './components';
+import {
+  TerraCard,
+  TerraZone,
+  TerraHoverCard,
+  TerraCardDialog,
+  TerraActionBar,
+  TerraPromptDialog,
+  LifeTracker,
+  ManaTracker,
+  PhaseTracker,
+  GameActions,
+  TerraStack,
+} from './components';
 import { useDeck, useCard, useHotKey, useDialog, useZone, useGameState, usePhase } from '~/composables';
 import { ContainerType, ZoneType } from './models/zone.model';
 
 const dialogComponents = {
   'terra-card-dialog': TerraCardDialog,
   'terra-prompt-dialog': TerraPromptDialog,
+  'terra-stack': TerraStack,
 };
 
 export default defineComponent({
   name: 'app',
-  components: { TerraCard, TerraZone, TerraHoverCard, TerraCardDialog, TerraActionBar, LifeTracker, ManaTracker, PhaseTracker, GameActions },
+  components: { TerraCard, TerraZone, TerraHoverCard, TerraCardDialog, TerraActionBar, LifeTracker, ManaTracker, PhaseTracker, GameActions, TerraStack },
   setup() {
     const { getDeck, loadDeck } = useDeck();
     const { setUp } = useCard();

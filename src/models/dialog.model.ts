@@ -1,5 +1,6 @@
 import { ComputedRef } from 'vue';
 import { Card } from './card.model';
+import { Predicate } from './predicates.model';
 import { ZoneType } from './zone.model';
 
 export type DialogChoice<T> = { label: string; value: T };
