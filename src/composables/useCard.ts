@@ -1,13 +1,11 @@
 import { computed, reactive } from 'vue';
 import { debounce } from 'debounce';
 import { Card, CardPosition } from '~/models/card.model';
-import { useEvents, useTauri } from '~/composables';
-import { useZone } from './useZone';
-import { useGameState } from './useGameState';
+import { useEvents, useTauri, useZone, useGameItems } from '~/composables';
 
 const { onEvent, emitEvent } = useEvents();
 const { findZoneFromCard } = useZone();
-const { setManyMeta, getMeta } = useGameState();
+const { getCardById, setCardsByIds } = useGameItems();
 
 export enum CardBusEventName {
   POSITION_OFFSET_UPDATE = 'position-offset-update',
@@ -66,7 +64,7 @@ function setUpHoverEvents() {
 }
 
 function getHoveredCard() {
-  return computed(() => getMeta(state.hoveredCard).value?.baseCard);
+  return computed(() => getCardById(state.hoveredCard).value?.baseCard);
 }
 
 function updatePosition(ids: string[], position: CardPosition) {
@@ -84,10 +82,10 @@ function onPositionUpdate(cardId: string, cb: (position: CardPosition) => void) 
 function tapOrUntapCard(ids: string[], tap = true) {
   if (tap) {
     emitEvent(CardBusEventName.TAP_CARD, { ids });
-    setManyMeta(ids, { isTapped: true });
+    setCardsByIds(ids, { isTapped: true });
   } else {
     emitEvent(CardBusEventName.UNTAP_CARD, { ids });
-    setManyMeta(ids, { isTapped: false });
+    setCardsByIds(ids, { isTapped: false });
   }
 }
 

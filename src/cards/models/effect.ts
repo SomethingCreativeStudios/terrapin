@@ -1,8 +1,8 @@
 import { Card, CardState } from '~/models/card.model';
-import { useGameState } from '~/composables';
+import { useGameItems } from '~/composables';
 import { ComputedRef } from 'vue';
 
-const { getMeta } = useGameState();
+const { getCardById } = useGameItems();
 
 export enum CardEffectType {
   TRIGGER = 'trigger',
@@ -17,7 +17,7 @@ export abstract class CardCost {
   private cardMeta: ComputedRef<CardState | undefined>;
 
   constructor(card: Card, public label?: string) {
-    this.cardMeta = getMeta(card.cardId);
+    this.cardMeta = getCardById(card.cardId);
     console.log(this.cardMeta);
   }
 

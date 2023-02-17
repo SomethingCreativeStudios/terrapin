@@ -2,7 +2,7 @@ import { clone } from 'ramda';
 import { createMachine, interpret } from 'xstate';
 import { PaymentActions } from '~/actions';
 import { CastingCost } from '~/cards/models/casting-cost/casting-cost';
-import { useZone, useDialog, useGameState, UserAction, useCard } from '~/composables';
+import { useZone, useDialog, useGameItems, UserAction, useGameTracker, useUserAction, useStack } from '~/composables';
 import { Card, CardPosition, ManaCost } from '~/models/card.model';
 import { NumberPromptDialogModel } from '~/models/dialog.model';
 import { ZoneType } from '~/models/zone.model';
@@ -111,8 +111,8 @@ const manaPayment = createMachine({
 });
 
 async function castSpell(card: Card, options?: CastingOptions) {
-  const { getMeta } = useGameState();
-  const state = getMeta(card.cardId).value;
+  const { getCardById } = useGameItems();
+  const state = getCardById(card.cardId).value;
   const service = buildService(card, options);
 
   const cardCastingCosts = state.cardClass.castingCosts;
@@ -198,7 +198,11 @@ function resolveTargets(_: StateContext<ManaPaymentContext>, service: StateInter
 
 async function payForSpell(ctx: StateContext<ManaPaymentContext>, service: StateInterrupter<ManaPaymentContext>) {
   const { moveCard } = useZone();
-  const { playLand, setMeta, canPlayLand, addToStack, setUserAction, getUserAction } = useGameState();
+  const { canPlayLand, addLandsPlayed } = useGameTracker();
+  const { setCardById } = useGameItems();
+  const { startAction, endAction } = useUserAction();
+  const { addToStack } = useStack();
+
   const card = ctx.context.card;
 
   if (card.cardTypes.includes('Land')) {
@@ -208,16 +212,14 @@ async function payForSpell(ctx: StateContext<ManaPaymentContext>, service: State
       return;
     }
 
-    setMeta(card.cardId, { position: ctx.context.options?.cardPos });
+    setCardById(card.cardId, { position: ctx.context.options?.cardPos });
     moveCard(ZoneType.stack, ZoneType.battlefield, ctx.context.card.cardId);
     service.send(ManaPaymentActions.NEXT);
-    playLand();
+    addLandsPlayed();
     return;
   }
 
-  const oldAction = getUserAction().value;
-
-  setUserAction(UserAction.PAYING_MANA);
+  startAction(UserAction.PAYING_MANA);
 
   const wasPaid = await PaymentActions.wasPaid(ctx.context.options?.castingCost || card.manaCost);
 
@@ -229,7 +231,7 @@ async function payForSpell(ctx: StateContext<ManaPaymentContext>, service: State
     moveCard(ZoneType.stack, ctx.context.startingZone, ctx.context.card.cardId);
   }
 
-  setUserAction(oldAction);
+  endAction(UserAction.PAYING_MANA);
   service.send(ManaPaymentActions.NEXT);
 }
 

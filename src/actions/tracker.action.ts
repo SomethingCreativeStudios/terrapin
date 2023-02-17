@@ -1,34 +1,33 @@
-import { useGameState } from '~/composables';
+import { useGameTracker, useMana as useManaComposable } from '~/composables';
 import { ManaCost, ManaType } from '~/models/card.model';
 import { ManaCostHelper } from './helper';
 
 export function takeDamage(damage: number) {
-  const { getLifeTotal, setLifeTotal } = useGameState();
+  const { subtractLifeCount } = useGameTracker();
 
-  setLifeTotal(getLifeTotal().value - damage);
+  subtractLifeCount(damage);
 }
 
 export function gainLife(life: number) {
-  const { getLifeTotal, setLifeTotal } = useGameState();
+  const { addLifeCount } = useGameTracker();
 
-  setLifeTotal(getLifeTotal().value + life);
+  addLifeCount(life);
 }
 
 export function loseHalfLife(roundDown = true) {
-  const { getLifeTotal, setLifeTotal } = useGameState();
-  const life = getLifeTotal().value;
-  setLifeTotal(Math[roundDown ? 'floor' : 'ceil'](life / 2));
+  const { getLifeCount, setLifeCount } = useGameTracker();
+  const life = getLifeCount().value;
+  setLifeCount(Math[roundDown ? 'floor' : 'ceil'](life / 2));
 }
 
 export function addMana(manaType: ManaType, amountOfMana = 1) {
-  const { getFloatingMana, setFloatingMana } = useGameState();
-  const currentFloating = getFloatingMana().value;
+  const { addFloatingMana } = useManaComposable();
 
-  setFloatingMana({ ...currentFloating, [manaType]: (currentFloating[manaType] ?? 0) + 1 });
+  addFloatingMana(manaType, amountOfMana);
 }
 
 export function useMana(manaType: ManaType, amountOfMana = 1) {
-  const { getFloatingMana, setFloatingMana } = useGameState();
+  const { getFloatingMana, setFloatingMana } = useManaComposable();
   const currentFloating = getFloatingMana().value;
 
   /// never go negative!!!
@@ -37,28 +36,28 @@ export function useMana(manaType: ManaType, amountOfMana = 1) {
 }
 
 export function spendFloating(manaType: ManaType, amountOfMana = 1) {
-  const { getUsedMana, getFloatingMana, setUsedMana } = useGameState();
+  const { getSpentMana, getFloatingMana, spendMana } = useManaComposable();
 
   const currentFloating = getFloatingMana().value;
-  const currentUsed = getUsedMana().value;
+  const currentUsed = getSpentMana().value;
 
   currentUsed[manaType] = Math.min((currentUsed[manaType] ?? 0) + amountOfMana, currentFloating[manaType] ?? 0);
-  setUsedMana(currentUsed);
+  spendMana(currentUsed);
 }
 
 export function undoSpentFloating(manaType: ManaType, amountOfMana = 1) {
-  const { getUsedMana, setUsedMana } = useGameState();
+  const { getSpentMana, spendMana } = useManaComposable();
 
-  const currentUsed = getUsedMana().value;
+  const currentUsed = getSpentMana().value;
   currentUsed[manaType] = Math.max((currentUsed[manaType] ?? 0) - amountOfMana, 0);
-  setUsedMana(currentUsed);
+  spendMana(currentUsed);
 }
 
 export function clearUsedMana() {
-  const { setUsedMana, getUsedMana } = useGameState();
+  const { spendMana, getSpentMana } = useManaComposable();
 
-  const usedMana = { ...getUsedMana().value };
-  setUsedMana({} as any);
+  const usedMana = { ...getSpentMana().value };
+  spendMana({} as any);
 
   return usedMana;
 }
@@ -77,7 +76,7 @@ export function hasManaFloatingForCost(manaCost: ManaCost) {
 }
 
 function addAllFloatingMana() {
-  const { getFloatingMana } = useGameState();
+  const { getFloatingMana } = useManaComposable();
   const floating = getFloatingMana().value;
   return Object.keys(ManaType).reduce((acc, type) => (acc += floating[type as ManaType] ?? 0), 0);
 }

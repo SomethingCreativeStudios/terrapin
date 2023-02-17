@@ -1,6 +1,6 @@
 import {} from '~/actions/hand.action';
 import { Card } from '~/models/card.model';
-import { useDialog, useGameState } from '~/composables';
+import { useDialog, useGameItems } from '~/composables';
 import { Effect } from './effect';
 import { DefaultCastingCost } from '../casting-cost/default.casting-cost';
 import { ZoneType } from '~/models/zone.model';
@@ -23,8 +23,8 @@ export class CastCardsInGraveyardEffect extends Effect {
     });
 
     targets.forEach((target) => {
-      const { getMeta } = useGameState();
-      const state = getMeta(target).value;
+      const { getCardById } = useGameItems();
+      const state = getCardById(target).value;
 
       state.cardClass.castingCosts.push(new DefaultCastingCost(state.baseCard, state.position || { x: 0, y: 0 }, 'Cast', [ZoneType.graveyard]));
     });

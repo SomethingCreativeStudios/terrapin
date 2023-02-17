@@ -1,14 +1,14 @@
 import { ComputedRef } from 'vue';
-import { useGameState } from '~/composables';
+import { useGameItems } from '~/composables';
 import { CardState, Card } from '~/models/card.model';
 
-const { getMeta } = useGameState();
+const { getCardById } = useGameItems();
 
 export abstract class Cost {
   private cardMeta: ComputedRef<CardState | undefined>;
 
   constructor(card: Card, public label?: string) {
-    this.cardMeta = getMeta(card.cardId);
+    this.cardMeta = getCardById(card.cardId);
   }
 
   public getMeta() {

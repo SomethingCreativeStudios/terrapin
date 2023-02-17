@@ -5,8 +5,7 @@ import { useEvents } from './useEvents';
 import { ActionDialogModel, CardDialogModel, DialogCache, DialogChoice, DialogModel, PromptDialogModel } from '~/models/dialog.model';
 import { shuffleDeck } from '~/actions/deck.action';
 import { ZoneType } from '~/models/zone.model';
-import { TargetMeta, useGameState, UserAction } from './useGameState';
-import { Predicate, PredicateCollection } from '~/models/predicates.model';
+import { TargetMeta, useUserAction } from './useUserAction';
 
 export const enum DialogEvents {
   PROMPT = 'dialog-prompt',
@@ -62,15 +61,22 @@ function promptUser(prompt: PromptDialogModel) {
   });
 }
 
-function askQuestion<T>(question: string, choices: DialogChoice<T>[], validators: Record<string, () => ComputedRef<boolean>> = {}): Promise<DialogChoice<T>> {
+function askQuestion<T>(
+  question: string,
+  choices: DialogChoice<T>[],
+  validators: Record<string, () => ComputedRef<boolean>> = {},
+  onChoice = (choice: DialogChoice<T>) => {}
+): Promise<DialogChoice<T>> {
   return new Promise((resolve) => {
     const { emitEvent, onEvent } = useEvents();
     const id = `dialog-${uuidv4()}`;
 
     state.actionDialogs.push({ id, question, choices, validators, clickOnValid: false });
     emitEvent(DialogEvents.PROMPT, { id, question, choices, validators } as ActionDialogModel<T>);
-    onEvent(`${id}-dialog-response`, ({ choice }) => {
+    onEvent(`${id}-dialog-response`, async ({ choice }) => {
+      await onChoice(choice);
       showNextActionDialog(id);
+
       resolve(choice);
     });
   });
@@ -96,7 +102,8 @@ function askComplexQuestion<T>(
   question: () => ComputedRef<string>,
   choices: DialogChoice<T>[],
   validators: Record<string, () => ComputedRef<boolean>> = {},
-  clickOnValid = false
+  clickOnValid = false,
+  onChoice = (choice: DialogChoice<T>) => {}
 ): Promise<DialogChoice<T>> {
   return new Promise((resolve) => {
     const { emitEvent, onEvent } = useEvents();
@@ -104,7 +111,8 @@ function askComplexQuestion<T>(
 
     state.actionDialogs.push({ id, question, choices, validators, clickOnValid });
     emitEvent(DialogEvents.PROMPT, { id, question, choices, validators, clickOnValid });
-    onEvent(`${id}-dialog-response`, ({ choice }) => {
+    onEvent(`${id}-dialog-response`, async ({ choice }) => {
+      await onChoice(choice);
       showNextActionDialog(id);
       resolve(choice);
     });
@@ -122,9 +130,9 @@ function showStack() {
 }
 
 async function findTargets(question = 'Select Targets', affectedZones: ZoneType[], targetMeta: TargetMeta) {
-  const { getAllTargets, clearTargets, toggleTargetMode, meetTargetCount } = useGameState();
+  const { meetTargetCount, chooseTargets, getAllTargets, resolveTargets } = useUserAction();
 
-  toggleTargetMode(targetMeta);
+  chooseTargets(targetMeta);
 
   affectedZones.forEach((zone) => selectFrom({ zone, canMove: true, currentZone: zone, showShuffle: zone === ZoneType.deck, dialogGroup: zone }));
 
@@ -141,8 +149,7 @@ async function findTargets(question = 'Select Targets', affectedZones: ZoneType[
 
   const targets = [...getAllTargets().value];
 
-  toggleTargetMode(targetMeta);
-  clearTargets();
+  resolveTargets();
 
   return targets;
 }

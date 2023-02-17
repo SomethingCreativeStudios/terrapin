@@ -1,5 +1,5 @@
-import { useZone, useGameState } from '~/composables';
-import { Card, ManaType } from '~/models/card.model';
+import { useZone, useGameItems } from '~/composables';
+import { Card } from '~/models/card.model';
 import { ZoneType } from '~/models/zone.model';
 import { castSpell } from '~/states';
 import { CastingCost } from './casting-cost';
@@ -16,10 +16,10 @@ export class AffinityCastingCost extends CastingCost {
 
   cast(): void {
     const { getZones } = useZone();
-    const { getMeta } = useGameState();
+    const { getCardById } = useGameItems();
     const battlefield = getZones().value[ZoneType.battlefield];
     const numberOfArtifacts = battlefield.cardIds.filter((id) => {
-      const card = getMeta(id).value;
+      const card = getCardById(id).value;
 
       return card.baseCard.cardTypes.includes(this.cardType);
     }).length;

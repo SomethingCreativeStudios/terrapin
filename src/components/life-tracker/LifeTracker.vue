@@ -1,16 +1,16 @@
 <script lang="tsx">
 import { defineComponent } from 'vue';
 import { TrackerActions } from '~/actions';
-import { useGameState } from '~/composables';
+import { useGameTracker } from '~/composables';
 
 export default defineComponent({
   name: 'life-tracker',
   components: {},
   props: {},
   setup() {
-    const { getLifeTotal, getTurnCount } = useGameState();
+    const { getLifeCount, getTurnCount } = useGameTracker();
 
-    return { lifeCount: getLifeTotal(), turnCount: getTurnCount() };
+    return { lifeCount: getLifeCount(), turnCount: getTurnCount() };
   },
   render() {
     return (

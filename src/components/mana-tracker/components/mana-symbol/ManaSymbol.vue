@@ -1,7 +1,7 @@
 <script lang="tsx">
 import { defineComponent, PropType } from 'vue';
 import { ManaType } from '~/models/card.model';
-import { useGameState, UserAction } from '~/composables';
+import { useUserAction, useMana, UserAction } from '~/composables';
 import { computed, ref } from '@vue/reactivity';
 import { TrackerActions } from '~/actions';
 
@@ -15,7 +15,8 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const { getFloatingMana, getUserAction, getManaOffset } = useGameState();
+    const { userDoingAction } = useUserAction();
+    const { getManaOffset, getFloatingMana } = useMana();
 
     const colorMap = {
       [ManaType.BLACK]: 'black',
@@ -37,9 +38,9 @@ export default defineComponent({
 
     const selectedColor = ref(colorMap[props.manaType]);
     const shadowColor = ref(shadowColorMap[props.manaType]);
-    const isPayingMana = computed(() => getUserAction().value === UserAction.PAYING_MANA);
+    const isPayingMana = userDoingAction(UserAction.PAYING_MANA);
 
-    const useMana = () => {
+    const spendMana = () => {
       if (!isPayingMana.value) return;
       TrackerActions.spendFloating(props.manaType);
     };
@@ -48,7 +49,7 @@ export default defineComponent({
       selectedColor,
       isPayingMana,
       shadowColor,
-      useMana,
+      spendMana,
       count: computed(() => (isPayingMana.value ? getManaOffset(props.manaType).value : getFloatingMana().value[props.manaType] || 0)),
     };
   },
@@ -67,7 +68,7 @@ export default defineComponent({
         >
           +
         </div>
-        <div class="mana-symbol__image" onClick={this.useMana}>
+        <div class="mana-symbol__image" onClick={this.spendMana}>
           <div class="mana-symbol__count">{this.count}</div>
           <img src={`/mana/${this.manaType}.png`} />
         </div>

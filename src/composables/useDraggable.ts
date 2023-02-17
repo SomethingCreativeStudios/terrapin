@@ -2,15 +2,11 @@ import interact from 'interactjs';
 import { onMounted, onUnmounted, ref } from 'vue';
 import { CardPosition } from '~/models/card.model';
 import { EventEmitter } from '~/models/event-emitter.model';
-import { CardBusEventName } from './useCard';
-import { useEvents } from './useEvents';
-import { GameStateEvent, useGameState, UserAction } from './useGameState';
+import { UserAction, useUserAction } from './useUserAction';
 
 export enum DraggableEvents {
   ON_POSITION_MOVE = 'on-position',
 }
-
-const { onEvent } = useEvents();
 
 function setup(initialPosition?: CardPosition) {
   const draggable = ref(null);
@@ -41,9 +37,8 @@ function setup(initialPosition?: CardPosition) {
       ],
       listeners: {
         move(event) {
-          const { getUserAction } = useGameState();
-
-          if (getUserAction().value === UserAction.PICKING_TARGETS) return;
+          const { userDoingAction } = useUserAction();
+          if (userDoingAction(UserAction.PICKING_TARGETS).value) return;
 
           position.value.x += event.dx;
           position.value.y += event.dy;

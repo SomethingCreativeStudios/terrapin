@@ -1,9 +1,11 @@
 import { reactive } from 'vue';
 import { Interpreter, AnyEventObject, ResolveTypegenMeta, TypegenDisabled, BaseActionObject, ServiceMap, InterpreterStatus } from 'xstate';
+import { DeckActions } from '~/actions';
 import { PhaseType, TurnPhase } from '~/models/phases.model';
 import { startPhases } from '~/states/phase.state';
 import { startPriority } from '~/states/priority.state';
 import { phaseSubject, prioritySubject } from '~/subjects';
+import { useGameTracker } from './useGameTracker';
 
 type PhaseState = Interpreter<
   any,
@@ -43,6 +45,19 @@ function setUp() {
     if (type === PhaseType.END) {
       //await waitForPriority();
       nextState();
+    }
+
+    if (type === PhaseType.START && phase === TurnPhase.UPTAP) {
+      const { addTurnCount } = useGameTracker();
+      addTurnCount();
+    }
+
+    if (type === PhaseType.START && phase === TurnPhase.DRAW) {
+      const { getTurnCount } = useGameTracker();
+
+      if (getTurnCount().value > 1) {
+        DeckActions.DrawXCards(1);
+      }
     }
   });
 }
@@ -84,7 +99,7 @@ function endTurn() {
 }
 
 export function usePhase() {
-  return { setUp, nextPhase, passPriority, skipCombat, endTurn, waitForPriority};
+  return { setUp, nextPhase, passPriority, skipCombat, endTurn, waitForPriority };
 }
 
 function nextState() {

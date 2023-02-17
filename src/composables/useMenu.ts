@@ -1,6 +1,6 @@
 import { Card, CardPosition, CardState } from '~/models/card.model';
 import { ZoneType } from '~/models/zone.model';
-import { useDeck, useDialog, useGameState, useZone } from '~/composables';
+import { useDeck, useDialog, useGameTracker, useZone } from '~/composables';
 import { startMulligan, castSpell } from '~/states';
 import { HandActions, DeckActions, BattlefieldActions } from '~/actions';
 import { NumberPromptDialogModel } from '~/models/dialog.model';
@@ -253,7 +253,7 @@ function getAllCastingCost(card: Card, base: BaseCard | null, zone: ZoneType) {
   const defaultCosts = [{ label: 'Card Info', customClass: '', onClick: () => console.log(card.oracleId, card.name) }];
 
   if (mappedCosts.length === 0) {
-    const { canPlayLand } = useGameState();
+    const { canPlayLand } = useGameTracker();
     const isLand = card.cardTypes.includes('Land');
 
     return zone === ZoneType.hand

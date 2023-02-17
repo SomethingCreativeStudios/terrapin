@@ -1,4 +1,4 @@
-import { useGameState } from '~/composables';
+import { useGameItems } from '~/composables';
 import { Card, CardColor } from '~/models/card.model';
 import { Predicate } from '~/models/predicates.model';
 import { ZoneType } from '~/models/zone.model';
@@ -26,8 +26,8 @@ export class CardWhiteListZoneFilter implements Predicate<Card> {
   constructor(private allowedZones: ZoneType[]) {}
 
   apply(input: Card): boolean {
-    const { getMeta } = useGameState();
-    const zone = getMeta(input.cardId).value?.zone;
+    const { getCardById } = useGameItems();
+    const zone = getCardById(input.cardId).value?.zone;
 
     return this.allowedZones.some((allowed) => allowed === zone);
   }
@@ -37,8 +37,8 @@ export class CardBlackListZoneFilter implements Predicate<Card> {
   constructor(private noGoZones: ZoneType[]) {}
 
   apply(input: Card): boolean {
-    const { getMeta } = useGameState();
-    const zone = getMeta(input.cardId).value?.zone;
+    const { getCardById } = useGameItems();
+    const zone = getCardById(input.cardId).value?.zone;
 
     return !this.noGoZones.some((allowed) => allowed === zone);
   }

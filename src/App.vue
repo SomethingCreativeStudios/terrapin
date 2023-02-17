@@ -13,7 +13,7 @@ import {
   GameActions,
   TerraStack,
 } from './components';
-import { useDeck, useCard, useHotKey, useDialog, useZone, useGameState, usePhase } from '~/composables';
+import { useDeck, useCard, useHotKey, useDialog, useZone, usePhase, useMana } from '~/composables';
 import { ContainerType, ZoneType } from './models/zone.model';
 
 const dialogComponents = {
@@ -28,18 +28,18 @@ export default defineComponent({
   setup() {
     const { getDeck, loadDeck } = useDeck();
     const { setUp } = useCard();
+    const { setUp: manaSetUp } = useMana();
     const { addZone } = useZone();
     const { setUpHotKeys } = useHotKey();
     const { getActiveDialogs } = useDialog();
-    const { setUp: gameStateSetUp } = useGameState();
     const { setUp: startPhases } = usePhase();
 
-    gameStateSetUp();
     setUpHotKeys();
     setUp();
     loadDeck('8cast');
     addZone(ZoneType.stack, ContainerType.CARD_DIALOG, true);
     startPhases();
+    manaSetUp();
 
     return { deck: getDeck(), dialogs: getActiveDialogs() };
   },

@@ -1,5 +1,5 @@
 import { computed } from 'vue';
-import { useDialog, useGameState } from '~/composables';
+import { useDialog, useMana } from '~/composables';
 import { ManaCost, ManaType } from '~/models/card.model';
 import { DialogChoice } from '~/models/dialog.model';
 import { TrackerActions } from '.';
@@ -8,14 +8,15 @@ import { manaPipToString, meetsPip } from './helper/mana-cost.helper';
 export async function wasPaid(manaCost: ManaCost): Promise<boolean> {
   const { askComplexQuestion, toChoice } = useDialog();
   const choices = [] as boolean[];
-  const { getFloatingMana } = useGameState();
-  const tempFloating = { ...getFloatingMana().value };
+  const { getSpentMana } = useMana();
 
   if (manaCost.mana.length === 1 && manaCost.mana[0].types?.length === 0 && manaCost.mana[0].genericCost === 0) {
     return true;
   }
 
-  for await (const manaPip of manaCost.mana) {
+  const promisedChoices = [] as Promise<DialogChoice<string>>[];
+  for (const manaPip of manaCost.mana) {
+    // if free,
     if (manaPip.genericCost <= 0 && manaPip.types.length === 0) {
       continue;
     }
@@ -23,8 +24,7 @@ export async function wasPaid(manaCost: ManaCost): Promise<boolean> {
     const question = () =>
       computed(() => {
         if (manaPip.genericCost) {
-          const { getUsedMana } = useGameState();
-          const used = getUsedMana().value;
+          const used = getSpentMana().value;
           const total = Object.values(used).reduce((acc, count) => acc + count, 0);
           const leftToPay = manaPip.genericCost - total;
           return leftToPay ? `Pay Mana? ${manaPipToString({ ...manaPip, genericCost: leftToPay })}` : 'Spend This Mana?';
@@ -32,31 +32,36 @@ export async function wasPaid(manaCost: ManaCost): Promise<boolean> {
         return `Pay Mana? ${manaPipToString(manaPip)}`;
       });
 
-    const choice = (await askComplexQuestion(
+    const choice = askComplexQuestion(
       question,
       toChoice(['Done', 'Cancel']),
       {
         Done: () =>
           computed(() => {
-            const { getUsedMana } = useGameState();
-            const used = getUsedMana().value;
+            const used = getSpentMana().value;
             const total = Object.values(used).reduce((acc, count) => acc + count, 0);
             console.log(total);
             return !meetsPip(used, manaPip);
           }),
       },
-      true
-    )) as DialogChoice<string>;
+      true,
+      (choice) => {
+        spendMana(getSpentMana().value);
+        TrackerActions.clearUsedMana();
+      }
+    ) as Promise<DialogChoice<string>>;
 
-    if (choice.value === 'Cancel') {
-      const { setFloatingMana } = useGameState();
-      setFloatingMana(tempFloating);
+    promisedChoices.push(choice);
+  }
+
+  for await (const choice of promisedChoices) {
+    const foundChoice = await choice;
+
+    if (foundChoice.value === 'Cancel') {
+      const { resetMana } = useMana();
+      resetMana();
       return false;
     }
-
-    const { getUsedMana } = useGameState();
-    useMana(getUsedMana().value);
-    TrackerActions.clearUsedMana();
 
     choices.push(choice.value === 'Done');
   }
@@ -64,6 +69,6 @@ export async function wasPaid(manaCost: ManaCost): Promise<boolean> {
   return choices.every(Boolean);
 }
 
-function useMana(mana: Record<ManaType, number>) {
+function spendMana(mana: Record<ManaType, number>) {
   Object.entries(mana).forEach(([manaType, number]) => TrackerActions.useMana(manaType as ManaType, number));
 }

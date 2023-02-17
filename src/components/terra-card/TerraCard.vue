@@ -3,7 +3,7 @@ import { defineComponent, PropType, computed } from 'vue';
 import { setUpCard } from './composables/useTerraCard';
 import { Card } from '~/models/card.model';
 import { ContainerType } from '~/models/zone.model';
-import { useMenu, useGameState, UserAction } from '~/composables';
+import { useMenu, useUserAction, useGameItems, UserAction } from '~/composables';
 
 export default defineComponent({
   name: 'terra-card',
@@ -29,12 +29,13 @@ export default defineComponent({
     },
   },
   setup(props, ctx) {
-    const { getMeta, getTargetMeta, getUserAction, meetTargetCount } = useGameState();
+    const { getCardById } = useGameItems();
+    const { getTargetMeta, userDoingAction, meetTargetCount } = useUserAction();
     const { cardClass, draggable, onTap, onCardClick, onCardHover } = setUpCard(props.card, props.containerType, ctx);
 
-    const isTargeting = computed(() => getUserAction().value === UserAction.PICKING_TARGETS);
+    const isTargeting = userDoingAction(UserAction.PICKING_TARGETS);
     const cardImage = computed(() => (props.flipCard ? './missing-image.jpeg' : props.card.imagePath));
-    const cardState = getMeta(props.card.cardId);
+    const cardState = getCardById(props.card.cardId);
 
     const isATarget = computed(() => !isTargeting.value || ((getTargetMeta()?.value?.targetFilter?.apply(props.card) ?? true) && !meetTargetCount().value));
 
@@ -47,9 +48,9 @@ export default defineComponent({
   methods: {
     onContextMenu(e: MouseEvent) {
       e.preventDefault();
-      const { getMeta } = useGameState();
+      const { getCardById } = useGameItems();
       const { getCardMenu } = useMenu();
-      const cardState = getMeta(this.card.cardId);
+      const cardState = getCardById(this.card.cardId);
 
       // @ts-ignore
       this.$contextmenu(getCardMenu(this.card, cardState.value, { x: e.x, y: e.y }) as any);

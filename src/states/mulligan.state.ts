@@ -1,5 +1,5 @@
 import { createMachine, assign, interpret } from 'xstate';
-import { useZone, useDialog, useGameState, GameStateEvent, useEvents, usePhase } from '~/composables';
+import { useZone, useDialog, useEvents, usePhase, useUserAction, UserAction, useGameItems } from '~/composables';
 import { ZoneType } from '~/models/zone.model';
 import { setUpTransitions, StateContext, StateInterrupter } from './shared';
 import { HandActions } from '~/actions';
@@ -56,15 +56,15 @@ const mulliganState = createMachine({
 });
 
 function startMulligan() {
-  const { emitEvent } = useEvents();
   const { nextPhase } = usePhase();
+  const { startAction, endAction } = useUserAction();
   const service = buildService();
 
-  emitEvent(GameStateEvent.MULLIGAN, {});
+  startAction(UserAction.MULLIGAN);
 
   service.onDone(() => {
     nextPhase();
-    emitEvent(GameStateEvent.NORMAL, {});
+    endAction(UserAction.MULLIGAN);
   });
 
   service.start();
@@ -110,12 +110,12 @@ async function onChoice(state: StateContext<MulliganContext>, service: StateInte
 
 async function onSendBack(state: StateContext<MulliganContext>, service: StateInterrupter<MulliganContext>) {
   const { getCardsInZone } = useZone();
-  const { getMeta } = useGameState();
+  const { getCardById } = useGameItems();
   const { selectFrom } = useDialog();
 
   const numberOfMulligans = state.context.count;
   const idsInHand = getCardsInZone(ZoneType.hand);
-  const cardsInHand = idsInHand.value.map((id) => getMeta(id).value?.baseCard);
+  const cardsInHand = idsInHand.value.map((id) => getCardById(id).value?.baseCard);
 
   HandActions.sendToBottom(
     await selectFrom({

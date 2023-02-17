@@ -1,7 +1,7 @@
 import { computed, reactive } from 'vue';
 import { useTauri } from './useTauri';
 import { useZone } from './useZone';
-import { useGameState } from './useGameState';
+import { useGameItems } from './useGameItems';
 import { ZoneType } from '~/models/zone.model';
 import { DeckActions } from '~/actions';
 import { cards as cardClassMap } from '~/cards/cards';
@@ -9,7 +9,7 @@ import { BaseCard } from '~/cards/base.card';
 import { startMulligan } from '~/states/mulligan.state';
 
 const { addCardToZone } = useZone();
-const { setMeta } = useGameState();
+const { setCardById } = useGameItems();
 
 const state = reactive({ deck: [] as string[] });
 
@@ -24,10 +24,10 @@ async function loadDeck(deckName: string) {
   cards.forEach((card) => {
     const CardClass = cardClassMap[card.oracleId] as BaseCard;
 
-    setMeta(card.cardId, { baseCard: card });
+    setCardById(card.cardId, { baseCard: card });
 
     // @ts-ignore
-    setMeta(card.cardId, { cardClass: CardClass ? new CardClass(card) : new BaseCard(card) });
+    setCardById(card.cardId, { cardClass: CardClass ? new CardClass(card) : new BaseCard(card) });
   });
 
   state.deck = cards.map((card) => card.cardId);

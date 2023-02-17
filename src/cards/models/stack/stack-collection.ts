@@ -1,5 +1,5 @@
 import { StackItem } from './stack-item';
-import { useDialog, useGameState, useZone } from '~/composables';
+import { useDialog, useGameItems, useZone } from '~/composables';
 import { computed, ref } from 'vue';
 import { ZoneType } from '~/models/zone.model';
 
@@ -57,27 +57,26 @@ export class StackCollection {
   }
 
   private castSpell(id: string, item: StackItem) {
-    const { getMeta, setMeta } = useGameState();
+    const { getCardById, setCardById } = useGameItems();
     const { moveCard } = useZone();
 
-    const state = getMeta(id).value;
+    const state = getCardById(id).value;
     const card = state.baseCard;
 
     // TODO: Make isSpell filter
     const isSpell = card.cardTypes.includes('Instant') || card.cardTypes.includes('Sorcery');
 
     if (!isSpell) {
-      setMeta(card.cardId, { position: item.position });
+      setCardById(card.cardId, { position: item.position });
       moveCard(ZoneType.stack, ZoneType.battlefield, id);
     } else {
-      const { getMeta } = useGameState();
-      const cardState = getMeta(id);
+      const cardState = getCardById(id);
 
       cardState.value.cardClass.abilities.forEach((ability) => {
         if (ability.canDo()) ability.do();
       });
 
-      setMeta(card.cardId, { position: item.position });
+      setCardById(card.cardId, { position: item.position });
       moveCard(ZoneType.stack, ZoneType.graveyard, id);
     }
   }

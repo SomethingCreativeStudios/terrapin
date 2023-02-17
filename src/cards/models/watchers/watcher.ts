@@ -1,15 +1,15 @@
 import { ComputedRef } from 'vue';
-import { useGameState } from '~/composables';
+import { useGameItems } from '~/composables';
 import { CardState, Card } from '~/models/card.model';
 import { Effect } from '../effects/effect';
 
-const { getMeta } = useGameState();
+const { getCardById } = useGameItems();
 
 export abstract class Watcher {
   private cardMeta: ComputedRef<CardState | undefined>;
 
   constructor(card: Card, public effect: Effect) {
-    this.cardMeta = getMeta(card.cardId);
+    this.cardMeta = getCardById(card.cardId);
   }
 
   public getMeta() {

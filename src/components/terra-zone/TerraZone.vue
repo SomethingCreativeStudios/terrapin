@@ -1,11 +1,11 @@
 <script lang="tsx">
-import { defineComponent, PropType, ref } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import TerraCard from '~/components/terra-card';
 import { ContainerType, ZoneType } from '~/models/zone.model';
 import { useTerraZone } from './composables/useTerraZone';
-import { useMenu, useGameState } from '~/composables';
+import { useMenu, useGameItems } from '~/composables';
 
-const { getMeta } = useGameState();
+const { getCardById } = useGameItems();
 
 export default defineComponent({
   name: 'terra-zone',
@@ -45,10 +45,10 @@ export default defineComponent({
     },
   },
   render() {
-    const firstCard = getMeta(this.zone.cardIds[0]).value;
-    const secondCard = getMeta(this.zone.cardIds[1]).value;
+    const firstCard = getCardById(this.zone.cardIds[0]).value;
+    const secondCard = getCardById(this.zone.cardIds[1]).value;
 
-    const cards = this.zone.cardIds.map((id) => <terra-card card={getMeta(id)?.value?.baseCard} containerType={this.containerType} flipCard={false} key={id}></terra-card>);
+    const cards = this.zone.cardIds.map((id) => <terra-card card={getCardById(id)?.value?.baseCard} containerType={this.containerType} flipCard={false} key={id}></terra-card>);
     const backOfCard = firstCard ? (
       <div>
         {secondCard ? (
@@ -67,9 +67,11 @@ export default defineComponent({
       </div>
     );
     return (
-      <div  class={this.zoneClasses}>
+      <div class={this.zoneClasses}>
         {zoneHeader}
-        <div ref="zoneRef" class="terra-zone__cards">{this.containerType === ContainerType.TOP_CARD ? backOfCard : cards}</div>
+        <div ref="zoneRef" class="terra-zone__cards">
+          {this.containerType === ContainerType.TOP_CARD ? backOfCard : cards}
+        </div>
         {this.$slots?.['default']?.()}
       </div>
     );

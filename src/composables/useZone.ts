@@ -4,10 +4,10 @@ import { onMounted, reactive, ref } from 'vue';
 import { Card, CardPosition } from '~/models/card.model';
 import { ContainerType, Zone, ZoneType } from '~/models/zone.model';
 import { castSpell } from '~/states';
-import { useGameState } from './useGameState';
+import { useGameItems } from './useGameItems';
 import { zoneChangesSubject } from '~/subjects';
 
-const { setMeta, getMeta } = useGameState();
+const { setCardById, getCardById } = useGameItems();
 
 const state = reactive({ zones: {} as Record<string, Zone> });
 
@@ -19,14 +19,14 @@ function addCardToZone(zone: ZoneType, id: string) {
 
   state.zones[zone].cardIds.push(id);
 
-  const { position } = getMeta(id).value ?? {};
-  setMeta(id, { zone, position: updateCardPosition(zone, position ?? { x: 0, y: 0 }, position) });
+  const { position } = getCardById(id).value ?? {};
+  setCardById(id, { zone, position: updateCardPosition(zone, position ?? { x: 0, y: 0 }, position) });
 }
 
 function moveCard(fromZone: ZoneType, toZone: ZoneType, id: string, moveToBottom = false) {
   state.zones[fromZone].cardIds = state.zones[fromZone].cardIds.filter((cardId) => cardId !== id);
 
-  setMeta(id, { zone: toZone });
+  setCardById(id, { zone: toZone });
 
   if (!state.zones[toZone].cardIds.some((cardId) => cardId === id)) {
     if (moveToBottom) {
@@ -219,16 +219,16 @@ function isSameZone(zone: ZoneType, element: HTMLElement) {
 function moveCardDragDrop(newZone: ZoneType, element: HTMLElement, newPosition?: CardPosition, moveSelected = false) {
   const card = getCard(element);
   const currentZone = findZoneNameFromCard(card.cardId);
-  const { position } = getMeta(card.cardId).value ?? {};
+  const { position } = getCardById(card.cardId).value ?? {};
   const updatedPosition = updateCardPosition(newZone, position ?? { x: 0, y: 0 }, newPosition);
 
   if (newZone === ZoneType.battlefield) {
-    setMeta(card.cardId, { position: updatedPosition });
+    setCardById(card.cardId, { position: updatedPosition });
     castSpell(card, { cardPos: updatedPosition });
     return;
   }
 
-  setMeta(card.cardId, { position: updatedPosition });
+  setCardById(card.cardId, { position: updatedPosition });
   moveCard(currentZone || '', newZone, card.cardId);
 
   if (moveSelected) {

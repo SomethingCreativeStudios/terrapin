@@ -5,7 +5,7 @@ import { ContainerType, ZoneType } from '~/models/zone.model';
 import TerraDialog from '../terra-dialog';
 import TerraCard from '../../terra-card';
 import { CardDialogModel } from '~/models/dialog.model';
-import { useDialog, useEvents, useGameState, useMenu, UserAction, useZone } from '~/composables';
+import { useEvents, useUserAction, useMenu, UserAction, useZone, useGameItems } from '~/composables';
 import { computed } from '@vue/reactivity';
 
 export default defineComponent({
@@ -19,11 +19,9 @@ export default defineComponent({
   },
   setup(props) {
     const selected = ref([] as Card[]);
-    const { getUserAction, getTargetMeta } = useGameState();
+    const { userDoingAction, getTargetMeta } = useUserAction();
 
-    const isPickingTargets = computed(() => {
-      return getUserAction().value === UserAction.PICKING_TARGETS;
-    });
+    const isPickingTargets = userDoingAction(UserAction.PICKING_TARGETS).value;
 
     const hoveredCard = ref(null as Card | null);
     const cardNameFilter = ref('');
@@ -45,11 +43,11 @@ export default defineComponent({
       }
 
       const { getCardsInZone } = useZone();
-      const { getMeta } = useGameState();
+      const { getCardById } = useGameItems();
 
-      const foundCards = getCardsInZone(props.dialog.zone ?? ZoneType.stack).value.map((id) => getMeta(id).value?.baseCard);
+      const foundCards = getCardsInZone(props.dialog.zone ?? ZoneType.stack).value.map((id) => getCardById(id).value?.baseCard);
 
-      if (isPickingTargets.value) {
+      if (isPickingTargets) {
         return foundCards.sort((carda, cardb) => {
           const doesAMeet = getTargetMeta().value?.targetFilter?.apply(carda);
           const doesBMeet = getTargetMeta().value?.targetFilter?.apply(cardb);

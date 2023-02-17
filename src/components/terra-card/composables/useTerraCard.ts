@@ -1,5 +1,5 @@
 import { computed, Ref, ref } from 'vue';
-import { useEvents, useDraggable, DraggableEvents, ContainerBusEvents, useZone, CardBusEventName, useGameState, UserAction } from '~/composables';
+import { useEvents, useDraggable, DraggableEvents, ContainerBusEvents, useZone, CardBusEventName, useGameItems, useUserAction, UserAction } from '~/composables';
 import { Card, CardPosition } from '~/models/card.model';
 import { EventEmitter } from '~/models/event-emitter.model';
 import { ContainerType } from '~/models/zone.model';
@@ -16,11 +16,13 @@ function buildClasses(cardState: Ref<string>, containerType: ContainerType) {
 
 function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents: EventEmitter, draggable: Ref<null>, cardState: Ref<string>, containerType: ContainerType) {
   const { emitEvent, onEvent } = useEvents();
-  const { setMeta, getUserAction } = useGameState();
+  const { setCardById } = useGameItems();
+  const { userDoingAction } = useUserAction();
   const isSelected = () => draggable.value && (draggable.value as HTMLElement).classList.contains('selected');
+  const isUserPickingTargets = userDoingAction(UserAction.PICKING_TARGETS);
 
   dragEvents.listen(DraggableEvents.ON_POSITION_MOVE, ({ offset }: { offset: CardPosition }) => {
-    if (getUserAction().value === UserAction.PICKING_TARGETS) return;
+    if (isUserPickingTargets.value) return;
     if (!draggable.value) return;
     if (!isSelected()) return;
 
@@ -30,7 +32,7 @@ function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents
   });
 
   onEvent(DraggableEvents.ON_POSITION_MOVE, ({ offset, senderId }: { offset: CardPosition; senderId: string }) => {
-    if (getUserAction().value === UserAction.PICKING_TARGETS) return;
+    if (isUserPickingTargets.value) return;
     if (!draggable.value) return;
     if (cardId === senderId) return;
     if (!isSelected()) return;
@@ -42,7 +44,7 @@ function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents
   });
 
   onEvent(CardBusEventName.POSITION_UPDATE, ({ pos, cardId: senderId, zIndex }: { pos: CardPosition; cardId: string; zIndex?: 0 }) => {
-    if (getUserAction().value === UserAction.PICKING_TARGETS) return;
+    if (isUserPickingTargets.value) return;
     if (!draggable.value) return;
     if (cardId !== senderId) return;
     if (!isSelected()) return;
@@ -55,18 +57,18 @@ function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents
       (draggable.value as HTMLElement).style['z-index'] = zIndex;
     }
     (draggable.value as HTMLElement).style.transform = `translate(${position.value.x}px, ${position.value.y}px)`;
-    setMeta(cardId, { position: { x: position.value.x, y: position.value.y } });
+    setCardById(cardId, { position: { x: position.value.x, y: position.value.y } });
   });
 
   onEvent(CardBusEventName.TOGGLE_TAP_CARD, () => {
-    if (getUserAction().value === UserAction.PICKING_TARGETS) return;
+    if (isUserPickingTargets.value) return;
     if (!isSelected()) return;
 
     onTap(cardId, cardState, containerType);
   });
 
   onEvent(CardBusEventName.TAP_CARD, ({ ids }: { ids: string[] }) => {
-    if (getUserAction().value === UserAction.PICKING_TARGETS) return;
+    if (isUserPickingTargets.value) return;
     if (containerType !== ContainerType.FREE_POSITION) return;
     if (!ids.includes(cardId)) return;
 
@@ -74,7 +76,7 @@ function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents
   });
 
   onEvent(CardBusEventName.UNTAP_CARD, ({ ids }: { ids: string[] }) => {
-    if (getUserAction().value === UserAction.PICKING_TARGETS) return;
+    if (isUserPickingTargets.value) return;
     if (containerType !== ContainerType.FREE_POSITION) return;
     if (!ids.includes(cardId)) return;
 
@@ -83,9 +85,10 @@ function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents
 }
 
 function onTap(cardId: string, cardState: Ref<string>, containerType: ContainerType) {
-  const { setMeta, getMeta, getUserAction } = useGameState();
+  const { getCardById, setCardById } = useGameItems();
+  const { userDoingAction } = useUserAction();
 
-  if (getUserAction().value === UserAction.PICKING_TARGETS) return;
+  if (userDoingAction(UserAction.PICKING_TARGETS).value) return;
   if (containerType !== ContainerType.FREE_POSITION) return;
 
   if (cardState.value === 'tapped') {
@@ -94,18 +97,19 @@ function onTap(cardId: string, cardState: Ref<string>, containerType: ContainerT
     cardState.value = 'tapped';
   }
 
-  console.log(getMeta(cardId).value?.baseCard?.oracleId, getMeta(cardId).value?.baseCard?.name);
-  setMeta(cardId, { isTapped: cardState.value === 'tapped' });
+  console.log(getCardById(cardId).value?.baseCard?.oracleId, getCardById(cardId).value?.baseCard?.name);
+  setCardById(cardId, { isTapped: cardState.value === 'tapped' });
 }
 
 function onCardClick(e: any, card: Card, containerType: ContainerType) {
-  const { getUserAction, setMeta, getMeta } = useGameState();
+  const { getCardById, setCardById } = useGameItems();
+  const { userDoingAction } = useUserAction();
 
-  if (getUserAction().value === UserAction.PICKING_TARGETS) {
+  if (userDoingAction(UserAction.PICKING_TARGETS).value) {
     const { emitEvent } = useEvents();
-    const isTargeted = getMeta(card.cardId)?.value?.targeted;
+    const isTargeted = getCardById(card.cardId)?.value?.targeted;
 
-    setMeta(card.cardId, { targeted: !isTargeted });
+    setCardById(card.cardId, { targeted: !isTargeted });
     emitEvent(isTargeted ? CardBusEventName.UNTARGET_CARD : CardBusEventName.TARGET_CARD, { cardId: card.cardId });
     return;
   }
@@ -127,8 +131,8 @@ function onCardHover(e: MouseEvent, card: Card, containerType: ContainerType, ct
 }
 
 export function setUpCard(card: Card, containerType: ContainerType, ctx: any) {
-  const { getMeta } = useGameState();
-  const cardMeta = getMeta(card.cardId);
+  const { getCardById } = useGameItems();
+  const cardMeta = getCardById(card.cardId);
 
   const { setup: setUpDrag } = useDraggable();
   const { draggable, position, draggableEvents } = setUpDrag(cardMeta.value.position);

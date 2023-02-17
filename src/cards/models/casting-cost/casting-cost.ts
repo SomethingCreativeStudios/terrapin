@@ -1,15 +1,15 @@
 import { ComputedRef } from 'vue';
-import { useGameState } from '~/composables';
+import { useGameItems } from '~/composables';
 import { CardState, Card } from '~/models/card.model';
 import { ZoneType } from '~/models/zone.model';
 
-const { getMeta } = useGameState();
+const { getCardById } = useGameItems();
 
 export abstract class CastingCost {
   private cardMeta: ComputedRef<CardState | undefined>;
 
   constructor(card: Card, public label?: string, public validZones = [ZoneType.hand]) {
-    this.cardMeta = getMeta(card.cardId);
+    this.cardMeta = getCardById(card.cardId);
   }
 
   public getMeta() {

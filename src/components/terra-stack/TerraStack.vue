@@ -1,8 +1,7 @@
 <script lang="tsx">
-import { defineComponent, Ref, computed, PropType } from 'vue';
+import { defineComponent, computed, PropType } from 'vue';
 import TerraDialog from '~/components/dialogs/terra-dialog';
-import { StackItem } from '~/cards/models/stack/stack-item';
-import { useGameState } from '~/composables';
+import { useStack, useGameItems } from '~/composables';
 import { PromptDialogModel } from '~/models/dialog.model';
 
 export default defineComponent({
@@ -16,10 +15,11 @@ export default defineComponent({
   },
   setup() {
     const items = computed(() => {
-      const { getMeta, getStack } = useGameState();
+      const { getCardById } = useGameItems();
+      const { getStack } = useStack();
 
       return getStack().value.map((item) => {
-        const card = getMeta(item.id).value.baseCard;
+        const card = getCardById(item.id).value.baseCard;
         return { image: card.imagePath, type: item.type };
       });
     });
