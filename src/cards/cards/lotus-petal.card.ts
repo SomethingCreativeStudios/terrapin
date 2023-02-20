@@ -11,6 +11,6 @@ export class LotusPetalCard extends BaseCard {
   constructor(card: Card) {
     super(card);
 
-    this.abilities.push(new BaseAbility([new TapCost(card), new SacCost(card)], new ManaEffect(card, 1), 'Tap Sac: Add one mana'));
+    this.abilities.push(new BaseAbility([new TapCost(card), new SacCost(card)], [new ManaEffect(card, 1)], 'Tap Sac: Add one mana'));
   }
 }

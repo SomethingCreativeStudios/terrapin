@@ -18,6 +18,10 @@ function addTurnCount() {
   state.turnCount += 1;
 }
 
+function resetLandsPlayed() {
+  state.landsPlayed = 0;
+}
+
 function getLandsPlayed() {
   return computed(() => state.landsPlayed);
 }
@@ -51,5 +55,17 @@ function subtractLifeCount(life: number) {
 }
 
 export function useGameTracker() {
-  return { getTurnCount, addTurnCount, addLandsPlayed, getLandsPlayed, getAllowedLandsPerTurn, canPlayLand, getLifeCount, setLifeCount, subtractLifeCount, addLifeCount };
+  return {
+    getTurnCount,
+    addTurnCount,
+    addLandsPlayed,
+    getLandsPlayed,
+    getAllowedLandsPerTurn,
+    canPlayLand,
+    getLifeCount,
+    setLifeCount,
+    subtractLifeCount,
+    addLifeCount,
+    resetLandsPlayed,
+  };
 }

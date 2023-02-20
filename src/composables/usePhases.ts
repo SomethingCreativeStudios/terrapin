@@ -48,8 +48,9 @@ function setUp() {
     }
 
     if (type === PhaseType.START && phase === TurnPhase.UPTAP) {
-      const { addTurnCount } = useGameTracker();
+      const { addTurnCount, resetLandsPlayed } = useGameTracker();
       addTurnCount();
+      resetLandsPlayed();
     }
 
     if (type === PhaseType.START && phase === TurnPhase.DRAW) {

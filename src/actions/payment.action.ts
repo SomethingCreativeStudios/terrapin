@@ -21,6 +21,8 @@ export async function wasPaid(manaCost: ManaCost): Promise<boolean> {
       continue;
     }
 
+    // TODO: Look at message groups
+
     const question = () =>
       computed(() => {
         if (manaPip.genericCost) {

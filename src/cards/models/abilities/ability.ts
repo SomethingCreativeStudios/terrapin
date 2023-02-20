@@ -8,7 +8,7 @@ export abstract class Ability {
 
   public type = AbilityType.ACTIVATED;
 
-  constructor(public costs: Cost[], public effect: Effect, public text: string, public validZones = [ZoneType.battlefield]) {}
+  constructor(public costs: Cost[], public effects: Effect[], public text: string, public validZones = [ZoneType.battlefield]) {}
 
   abstract canDo(): boolean;
 

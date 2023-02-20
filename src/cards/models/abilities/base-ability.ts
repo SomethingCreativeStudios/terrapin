@@ -8,7 +8,7 @@ export class BaseAbility extends Ability {
   do(): void {
     if (this.canDo()) {
       this.costs.forEach((cost) => cost.pay());
-      this.effect.do();
+      this.effects.forEach((effect) => effect.do());
     }
   }
 }

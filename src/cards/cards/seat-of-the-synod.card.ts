@@ -14,6 +14,6 @@ export class SeatOfTheSynodCard extends BaseCard {
   constructor(card: Card) {
     super(card);
 
-    this.abilities.push(new BaseAbility([new TapCost(card)], new SpecificManaEffect(card, ManaType.BLUE), 'Add U'));
+    this.abilities.push(new BaseAbility([new TapCost(card)], [new SpecificManaEffect(card, ManaType.BLUE)], 'Add U'));
   }
 }

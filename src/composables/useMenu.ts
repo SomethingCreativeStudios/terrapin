@@ -250,7 +250,9 @@ function getAllCastingCost(card: Card, base: BaseCard | null, zone: ZoneType) {
       }))
       ?.filter((cast) => cast.validZones.includes(zone)) ?? [];
 
-  const defaultCosts = [{ label: 'Card Info', customClass: '', onClick: () => console.log(card.oracleId, card.name) }];
+  const defaultCosts = [
+    { label: 'Card Info', customClass: '', onClick: () => console.log(card.oracleId, card.name.toLowerCase().replaceAll(' ', '-'), card.name.replaceAll(' ', '')) },
+  ];
 
   if (mappedCosts.length === 0) {
     const { canPlayLand } = useGameTracker();

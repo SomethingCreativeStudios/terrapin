@@ -68,6 +68,7 @@ function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents
   });
 
   onEvent(CardBusEventName.TAP_CARD, ({ ids }: { ids: string[] }) => {
+    if (!cardState.value.includes('untapped')) return;
     if (isUserPickingTargets.value) return;
     if (containerType !== ContainerType.FREE_POSITION) return;
     if (!ids.includes(cardId)) return;
@@ -76,6 +77,7 @@ function setUpDragEvents(cardId: string, position: Ref<CardPosition>, dragEvents
   });
 
   onEvent(CardBusEventName.UNTAP_CARD, ({ ids }: { ids: string[] }) => {
+    if (cardState.value.includes('untapped')) return;
     if (isUserPickingTargets.value) return;
     if (containerType !== ContainerType.FREE_POSITION) return;
     if (!ids.includes(cardId)) return;
@@ -137,7 +139,7 @@ export function setUpCard(card: Card, containerType: ContainerType, ctx: any) {
   const { setup: setUpDrag } = useDraggable();
   const { draggable, position, draggableEvents } = setUpDrag(cardMeta.value.position);
 
-  const cardState = ref('initial');
+  const cardState = ref('initial-untapped');
 
   setUpDragEvents(card.cardId, position, draggableEvents, draggable, cardState, containerType);
 

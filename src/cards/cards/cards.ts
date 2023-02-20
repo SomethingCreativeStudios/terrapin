@@ -4,3 +4,5 @@ export * from './mishras-bauble';
 export * from './seat-of-the-synod.card';
 export * from './lotus-petal.card';
 export * from './emry-lurker-of-the-loch.card';
+export * from './ancient-tomb.card';
+export * from './thought-monitor.card';

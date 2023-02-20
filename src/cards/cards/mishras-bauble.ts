@@ -14,6 +14,6 @@ export class MishrasBaubleCard extends BaseCard {
     super(card);
 
     const effect = new WatcherEffect(card, new UpkeepWatcher(card, new DrawEffect(1, card, 'Draw Card'), true));
-    this.abilities.push(new BaseAbility([new TapCost(card), new SacCost(card)], effect, 'Look at top card of a players library.\n Draw card at next upkeep'));
+    this.abilities.push(new BaseAbility([new TapCost(card), new SacCost(card)], [effect], 'Look at top card of a players library.\n Draw card at next upkeep'));
   }
 }
