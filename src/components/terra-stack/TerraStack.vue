@@ -15,11 +15,12 @@ export default defineComponent({
   },
   setup() {
     const items = computed(() => {
-      const { getCardById } = useGameItems();
+      const { getCardById, getAbilityById } = useGameItems();
       const { getStack } = useStack();
 
       return getStack().value.map((item) => {
-        const card = getCardById(item.id).value.baseCard;
+        const card = item.type === 'SPELL' ? getCardById(item.id).value.baseCard : getAbilityById(item.id).value.getCardState().baseCard;
+
         return { image: card.imagePath, type: item.type };
       });
     });

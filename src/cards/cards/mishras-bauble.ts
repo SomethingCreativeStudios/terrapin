@@ -13,7 +13,10 @@ export class MishrasBaubleCard extends BaseCard {
   constructor(card: Card) {
     super(card);
 
-    const effect = new WatcherEffect(card, new UpkeepWatcher(card, new DrawEffect(1, card, 'Draw Card'), true));
+    // TODO: All abilities should use the stack... except mana abilities
+    // Need ability types
+
+    const effect = new WatcherEffect(card, new UpkeepWatcher(card, [new DrawEffect(1, card, 'Draw Card')], true));
     this.abilities.push(new BaseAbility([new TapCost(card), new SacCost(card)], [effect], 'Look at top card of a players library.\n Draw card at next upkeep'));
   }
 }

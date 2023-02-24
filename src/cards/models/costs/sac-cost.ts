@@ -7,11 +7,11 @@ export class SacCost extends Cost {
     super(card, 'Sac');
   }
 
-  canPay(): boolean {
+  async canPay(): Promise<boolean> {
     return true;
   }
 
-  pay(): void {
+  async pay(): Promise<void> {
     CardActions.sacrifice(this.getMeta().baseCard);
   }
 }

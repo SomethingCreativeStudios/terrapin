@@ -38,10 +38,11 @@ export default defineComponent({
     return { zoneRef, zone, zoneClasses };
   },
   methods: {
-    onContextMenu(e: MouseEvent) {
+    async onContextMenu(e: MouseEvent) {
       e.preventDefault();
       const { getMenu } = useMenu();
-      this.$contextmenu(getMenu(this.name, { x: e.x, y: e.y }) as any);
+      const menuItems = (await getMenu(this.name, { x: e.x, y: e.y })) as any;
+      this.$contextmenu(menuItems);
     },
   },
   render() {

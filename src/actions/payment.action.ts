@@ -1,14 +1,35 @@
 import { computed } from 'vue';
-import { useDialog, useMana } from '~/composables';
-import { ManaCost, ManaType } from '~/models/card.model';
+import { AbilityType } from '~/cards/models/abilities/ability';
+import { useDialog, useGameItems, useMana } from '~/composables';
+import { ManaType } from '~/models/card.model';
 import { DialogChoice } from '~/models/dialog.model';
+import { ZoneType } from '~/models/zone.model';
 import { TrackerActions } from '.';
 import { manaPipToString, meetsPip } from './helper/mana-cost.helper';
 
-export async function wasPaid(manaCost: ManaCost): Promise<boolean> {
+const { getCardById } = useGameItems();
+
+async function applyManaCostMods(cardId: string) {
+  const state = getCardById(cardId).value;
+
+  for await (const ability of state.cardClass.abilities) {
+    if (!ability.validZones.includes(ZoneType.stack)) return;
+    if (ability.type !== AbilityType.STATIC) return;
+    const canDo = await ability.canDo();
+
+    if (canDo) {
+      await ability.do();
+    }
+  }
+}
+
+export async function wasPaid(cardId: string): Promise<boolean> {
+  await applyManaCostMods(cardId);
+
   const { askComplexQuestion, toChoice } = useDialog();
   const choices = [] as boolean[];
   const { getSpentMana } = useMana();
+  const { castingCost: manaCost } = getCardById(cardId).value;
 
   if (manaCost.mana.length === 1 && manaCost.mana[0].types?.length === 0 && manaCost.mana[0].genericCost === 0) {
     return true;

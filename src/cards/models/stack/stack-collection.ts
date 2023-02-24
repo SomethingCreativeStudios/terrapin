@@ -31,7 +31,12 @@ export class StackCollection {
     while (this.stackValue.length) {
       const item = this.stackValue.pop();
       if (item?.type === 'SPELL') {
-        this.castSpell(item.id, item);
+        await this.castSpell(item.id, item);
+      }
+
+      if (item?.type === 'ABILITY') {
+        const { getAbilityById } = useGameItems();
+        await getAbilityById(item.id).value.do(true);
       }
     }
   }
@@ -42,6 +47,10 @@ export class StackCollection {
 
   public getStack() {
     return computed(() => this.stackValue);
+  }
+
+  public inStack(id: string) {
+    return !!this.stackValue.find((item) => item.id === id);
   }
 
   public isEmpty() {
@@ -56,7 +65,7 @@ export class StackCollection {
     return hasPriorityDialogs().value;
   }
 
-  private castSpell(id: string, item: StackItem) {
+  private async castSpell(id: string, item: StackItem) {
     const { getCardById, setCardById } = useGameItems();
     const { moveCard } = useZone();
 
@@ -72,9 +81,11 @@ export class StackCollection {
     } else {
       const cardState = getCardById(id);
 
-      cardState.value.cardClass.abilities.forEach((ability) => {
-        if (ability.canDo()) ability.do();
-      });
+      for await (const ability of cardState.value.cardClass.abilities) {
+        if (await ability.canDo()) {
+          await ability.do();
+        }
+      }
 
       setCardById(card.cardId, { position: item.position });
       moveCard(ZoneType.stack, ZoneType.graveyard, id);

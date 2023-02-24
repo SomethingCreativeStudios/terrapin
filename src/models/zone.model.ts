@@ -22,6 +22,7 @@ export enum TopCardType {
 }
 
 export enum ZoneType {
+  none = 'none',
   hand = 'Hand',
   deck = 'Deck',
   battlefield = 'Battlefield',

@@ -7,11 +7,11 @@ export class TapCost extends Cost {
     super(card, 'Tap');
   }
 
-  canPay(): boolean {
+  async canPay(): Promise<boolean> {
     return !this.getMeta()?.isTapped;
   }
 
-  pay(): void {
+  async pay(): Promise<void> {
     const { tapOrUntapCard } = useCard();
     tapOrUntapCard([this.getMeta()?.baseCard?.cardId || '']);
   }

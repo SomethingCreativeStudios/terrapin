@@ -30,6 +30,7 @@ export interface CardState {
   targeted?: boolean;
   baseCard: Card;
   cardClass: BaseCard;
+  castingCost: ManaCost;
 }
 
 export interface CardPosition {

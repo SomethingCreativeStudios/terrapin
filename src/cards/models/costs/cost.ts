@@ -16,6 +16,6 @@ export abstract class Cost {
     return this.cardMeta.value ?? (this.cardMeta as CardState);
   }
 
-  abstract canPay(): boolean;
-  abstract pay(): void;
+  abstract canPay(): Promise<boolean>;
+  abstract pay(): Promise<void>;
 }

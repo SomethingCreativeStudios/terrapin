@@ -27,6 +27,10 @@ function getStack() {
   return state.stack.getStack();
 }
 
+function isOnStack(id: string) {
+  return state.stack.inStack(id);
+}
+
 export function useStack() {
-  return { addToStack, isStackEmpty, getStack };
+  return { addToStack, isOnStack, isStackEmpty, getStack };
 }

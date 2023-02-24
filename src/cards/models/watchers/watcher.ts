@@ -8,7 +8,7 @@ const { getCardById } = useGameItems();
 export abstract class Watcher {
   private cardMeta: ComputedRef<CardState | undefined>;
 
-  constructor(card: Card, public effect: Effect) {
+  constructor(card: Card, public effects: Effect[]) {
     this.cardMeta = getCardById(card.cardId);
   }
 

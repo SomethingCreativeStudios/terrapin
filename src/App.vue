@@ -13,7 +13,7 @@ import {
   GameActions,
   TerraStack,
 } from './components';
-import { useDeck, useCard, useHotKey, useDialog, useZone, usePhase, useMana } from '~/composables';
+import { useDeck, useCard, useHotKey, useDialog, useZone, usePhase, useMana, useGameTracker } from '~/composables';
 import { ContainerType, ZoneType } from './models/zone.model';
 
 const dialogComponents = {
@@ -26,6 +26,7 @@ export default defineComponent({
   name: 'app',
   components: { TerraCard, TerraZone, TerraHoverCard, TerraCardDialog, TerraActionBar, LifeTracker, ManaTracker, PhaseTracker, GameActions, TerraStack },
   setup() {
+    const { setUp: gameTrackerSetup } = useGameTracker();
     const { getDeck, loadDeck } = useDeck();
     const { setUp } = useCard();
     const { setUp: manaSetUp } = useMana();
@@ -40,6 +41,7 @@ export default defineComponent({
     addZone(ZoneType.stack, ContainerType.CARD_DIALOG, true);
     startPhases();
     manaSetUp();
+    gameTrackerSetup();
 
     return { deck: getDeck(), dialogs: getActiveDialogs() };
   },

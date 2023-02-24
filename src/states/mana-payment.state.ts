@@ -221,7 +221,7 @@ async function payForSpell(ctx: StateContext<ManaPaymentContext>, service: State
 
   startAction(UserAction.PAYING_MANA);
 
-  const wasPaid = await PaymentActions.wasPaid(ctx.context.options?.castingCost || card.manaCost);
+  const wasPaid = await PaymentActions.wasPaid(card.cardId);
 
   if (wasPaid) {
     await addToStack({ id: card.cardId, type: 'SPELL', position: ctx.context.options?.cardPos });

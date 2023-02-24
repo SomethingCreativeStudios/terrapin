@@ -1,6 +1,10 @@
 import { computed, reactive } from 'vue';
+import { EventType } from '~/cards/models/game-event';
+import { eventSubject, GameEvent } from '~/subjects';
 
 const state = reactive({
+  currentEvent: {} as GameEvent,
+  lastEvent: {} as GameEvent,
   turnCount: 0,
   lifeCount: 20,
   landsPerTurn: 1,
@@ -9,6 +13,17 @@ const state = reactive({
 
 // @ts-ignore
 window.state.gameTracker = state;
+
+function setUp() {
+  eventSubject.subscribe((event: GameEvent) => {
+    state.lastEvent = state.currentEvent;
+    state.currentEvent = event;
+  });
+}
+
+function getEventType() {
+  return computed(() => state.currentEvent);
+}
 
 function getTurnCount() {
   return computed(() => state.turnCount);
@@ -56,6 +71,7 @@ function subtractLifeCount(life: number) {
 
 export function useGameTracker() {
   return {
+    setUp,
     getTurnCount,
     addTurnCount,
     addLandsPlayed,
@@ -67,5 +83,6 @@ export function useGameTracker() {
     subtractLifeCount,
     addLifeCount,
     resetLandsPlayed,
+    getEventType,
   };
 }

@@ -46,14 +46,14 @@ export default defineComponent({
     return { draggable, cardClass, cardImage, cardState, isATarget, onTap, onCardClick, onCardHover };
   },
   methods: {
-    onContextMenu(e: MouseEvent) {
+    async onContextMenu(e: MouseEvent) {
       e.preventDefault();
       const { getCardById } = useGameItems();
       const { getCardMenu } = useMenu();
       const cardState = getCardById(this.card.cardId);
 
       // @ts-ignore
-      this.$contextmenu(getCardMenu(this.card, cardState.value, { x: e.x, y: e.y }) as any);
+      this.$contextmenu((await getCardMenu(this.card, cardState.value, { x: e.x, y: e.y })) as any);
     },
   },
   render() {

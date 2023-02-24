@@ -14,3 +14,14 @@ export abstract class BaseCard {
 
   constructor(card: Card) {}
 }
+
+export enum CardType {
+  ARTIFICAT = 'Artifact',
+  CREATURE = 'Creature',
+  DUNGEON = 'Dungeon',
+  ENCHANTMENT = 'Enchantment',
+  INSTANT = 'Instant',
+  PLANESWALKER = 'Planeswalker',
+  SORCERY = 'Sorcery',
+  TRIBAL = 'Tribal',
+}

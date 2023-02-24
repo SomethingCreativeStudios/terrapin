@@ -5,7 +5,9 @@ import { Card, CardPosition } from '~/models/card.model';
 import { ContainerType, Zone, ZoneType } from '~/models/zone.model';
 import { castSpell } from '~/states';
 import { useGameItems } from './useGameItems';
-import { zoneChangesSubject } from '~/subjects';
+import { zoneChangesSubject, eventSubject } from '~/subjects';
+import { Predicate } from '~/models/predicates.model';
+import { EventType } from '~/cards/models/game-event';
 
 const { setCardById, getCardById } = useGameItems();
 
@@ -24,6 +26,8 @@ function addCardToZone(zone: ZoneType, id: string) {
 }
 
 function moveCard(fromZone: ZoneType, toZone: ZoneType, id: string, moveToBottom = false) {
+  const { resetCardId } = useGameItems();
+
   state.zones[fromZone].cardIds = state.zones[fromZone].cardIds.filter((cardId) => cardId !== id);
 
   setCardById(id, { zone: toZone });
@@ -36,7 +40,13 @@ function moveCard(fromZone: ZoneType, toZone: ZoneType, id: string, moveToBottom
     }
   }
 
-  zoneChangesSubject.next({ newZone: toZone, cardIds: [id] });
+  let cardId = id;
+  if (toZone !== ZoneType.stack) {
+    cardId = resetCardId(id);
+  }
+
+  zoneChangesSubject.next({ newZone: toZone, cardIds: [cardId] });
+  sendGameEvent(cardId, fromZone, toZone);
 }
 
 function reorderCards(zone: ZoneType, oldIndex: number, newIndex: number) {
@@ -182,6 +192,19 @@ function removeCardInZone(zone: ZoneType, id: string) {
   state.zones[zone].cardIds = state.zones[zone].cardIds.filter((cardId) => cardId !== id);
 }
 
+function getCardsInZoneByFilter(zone: ZoneType, filter: Predicate<Card>) {
+  const { getManyCardsByIds } = useGameItems();
+  const mappedCards = getManyCardsByIds(state.zones[zone]?.cardIds ?? []);
+
+  return mappedCards.filter((card) => filter.apply(card.baseCard));
+}
+
+function swapCardId(oldId: string, newId: string) {
+  const zone = findZoneFromCard(oldId);
+
+  zone.cardIds = zone.cardIds.map((id) => (id === oldId ? newId : id));
+}
+
 function getZones() {
   return computed(() => state?.zones);
 }
@@ -201,6 +224,8 @@ export function useZone() {
     updateSelected,
     removeCardInZone,
     getZones,
+    getCardsInZoneByFilter,
+    swapCardId,
   };
 }
 
@@ -264,5 +289,11 @@ function updateCardPosition(newZone: string, currentPosition: CardPosition, newP
 
     default:
       return newPosition || currentPosition;
+  }
+}
+
+function sendGameEvent(cardId: string, zone: ZoneType, newZone: ZoneType) {
+  if (newZone === ZoneType.battlefield) {
+    eventSubject.next({ sourceId: cardId, sourceZone: newZone, type: EventType.ENTERS_THE_BATTLEFIELD });
   }
 }
