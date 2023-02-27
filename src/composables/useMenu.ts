@@ -4,7 +4,7 @@ import { useDeck, useDialog, useGameItems, useGameTracker, useZone } from '~/com
 import { startMulligan, castSpell } from '~/states';
 import { HandActions, DeckActions, BattlefieldActions } from '~/actions';
 import { NumberPromptDialogModel } from '~/models/dialog.model';
-import { BaseCard } from '~/cards/base.card';
+import { BaseCard } from '~/cards/models/base.card';
 import { AbilityType } from '~/cards/models/abilities/ability';
 import { AsThoughEffectType } from '~/cards/models/other-constants';
 

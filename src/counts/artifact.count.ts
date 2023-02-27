@@ -1,5 +1,5 @@
 import { computed } from 'vue';
-import { CardType } from '~/cards/base.card';
+import { CardType } from '~/cards/models/base.card';
 import { useZone } from '~/composables';
 import { CardTypeFilter } from '~/filters/card.filter';
 import { ZoneType } from '~/models/zone.model';

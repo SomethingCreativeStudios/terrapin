@@ -4,7 +4,7 @@ import { useZone } from './useZone';
 import { useGameItems } from './useGameItems';
 import { ZoneType } from '~/models/zone.model';
 import { DeckActions } from '~/actions';
-import { BaseCard } from '~/cards/base.card';
+import { BaseCard } from '~/cards/models/base.card';
 import { startMulligan } from '~/states/mulligan.state';
 
 const { addCardToZone } = useZone();

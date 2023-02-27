@@ -1,4 +1,4 @@
-import { BaseCard } from '~/cards/base.card';
+import { BaseCard } from '~/cards/models/base.card';
 import { ZoneType } from './zone.model';
 
 export interface Card {

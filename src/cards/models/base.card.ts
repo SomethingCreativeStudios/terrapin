@@ -1,7 +1,7 @@
 import { Card } from '~/models/card.model';
-import { Ability } from './models/abilities/ability';
-import { CastingCost } from './models/casting-cost/casting-cost';
-import { CardCost, CardEffect } from './models/effect';
+import { Ability } from './abilities/ability';
+import { CastingCost } from './casting-cost/casting-cost';
+import { CardCost, CardEffect } from './effect';
 
 export interface BaseCardID {
   UUID: string;

@@ -15,7 +15,14 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "~/*": ["./src/*"]
+      "~/*": ["./src/*"],
+      "~abilities": ["./src/cards/models/abilities"],
+      "~condition": ["./src/cards/models/condition"],
+      "~effects": ["./src/cards/models/effects"],
+      "~costs": ["./src/cards/models/costs"],
+      "~watchers": ["./src/cards/models/watchers"],
+      "~base-card": ["./src/cards/models/base.card.ts"],
+      "~dialogs": ["./src/components/dialogs"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
