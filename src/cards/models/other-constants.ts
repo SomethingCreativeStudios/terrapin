@@ -1,3 +1,5 @@
+import { EventType } from './game-event';
+
 export enum Outcome {
   DAMAGE = 'damage',
   DESTROY_PERMANENT = 'destroy permanent',
@@ -51,6 +53,12 @@ export enum Duration {
   END_OF_COMBAT = 'end of combat',
   END_OF_STEP = 'end of step',
 }
+
+export const durationToEventMap = {
+  [Duration.END_OF_STEP]: EventType.END_TURN_STEP_PRE,
+  [Duration.END_OF_TURN]: EventType.END_TURN_STEP_PRE,
+  [Duration.END_OF_COMBAT]: EventType.END_COMBAT_STEP_PRE,
+} as Record<Duration, EventType>;
 
 export enum DependencyType {
   AURA_ADDING_REMOVING,

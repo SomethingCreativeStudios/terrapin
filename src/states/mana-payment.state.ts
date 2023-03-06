@@ -1,7 +1,6 @@
 import { clone } from 'ramda';
 import { createMachine, interpret } from 'xstate';
 import { PaymentActions } from '~/actions';
-import { CastingCost } from '~/cards/models/casting-cost/casting-cost';
 import { useZone, useDialog, useGameItems, UserAction, useGameTracker, useUserAction, useStack } from '~/composables';
 import { Card, CardPosition, ManaCost } from '~/models/card.model';
 import { NumberPromptDialogModel } from '~/models/dialog.model';
@@ -115,20 +114,7 @@ async function castSpell(card: Card, options?: CastingOptions) {
   const state = getCardById(card.cardId).value;
   const service = buildService(card, options);
 
-  const cardCastingCosts = state.cardClass.castingCosts;
-  if (cardCastingCosts.length === 0 || options?.skipAuto) {
-    service.start();
-  } else if (cardCastingCosts.length === 1) {
-    cardCastingCosts[0].cast();
-  } else {
-    const { askQuestion } = useDialog();
-    const cost = await askQuestion<CastingCost>(
-      'Pick Casting Method',
-      cardCastingCosts.map((cost) => ({ label: cost.label || '', value: cost }))
-    );
-
-    cost.value.cast();
-  }
+  service.start();
 }
 
 function buildService(card: Card, options?: CastingOptions) {

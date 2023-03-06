@@ -3,16 +3,16 @@ import { Card } from '~/models/card.model';
 import { Cost } from './cost';
 
 export class TapCost extends Cost {
-  constructor(card: Card) {
-    super(card, 'Tap');
+  constructor(cardId: string) {
+    super(cardId);
   }
 
   async canPay(): Promise<boolean> {
-    return !this.getMeta()?.isTapped;
+    return !this.getCardState()?.isTapped;
   }
 
   async pay(): Promise<void> {
     const { tapOrUntapCard } = useCard();
-    tapOrUntapCard([this.getMeta()?.baseCard?.cardId || '']);
+    tapOrUntapCard([this.getCardState()?.baseCard?.cardId || '']);
   }
 }

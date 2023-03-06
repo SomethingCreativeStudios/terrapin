@@ -27,7 +27,7 @@ export class EmryLurkerOfTheLochCard extends BaseCard {
       new SimpleActivatedAbility(
         card.cardId,
         [new EmryCustomEffect(card.cardId)],
-        [new TapCost(card)],
+        [new TapCost(card.cardId)],
         '{T}: Choose target artifact card in your graveyard. You may cast that card this turn.'
       )
     );

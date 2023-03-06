@@ -9,9 +9,6 @@ export class ActivatedAbility extends Ability {
   }
 
   async ability(): Promise<void> {
-    if (!(await this.canPayCosts())) return;
-
-    await this.payAllCosts();
     await this.doAllEffects();
   }
 }

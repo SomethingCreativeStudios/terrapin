@@ -1,6 +1,7 @@
 import { v4 as uuid } from 'uuid';
 import { useGameItems, useStack } from '~/composables';
 import { ZoneType } from '~/models/zone.model';
+import { cardIdSubject } from '~/subjects';
 import { Condition } from '../condition/condition';
 import { Cost } from '../costs/cost';
 import { Effect } from '../effects/effect';
@@ -27,10 +28,17 @@ export abstract class Ability {
   public id = uuid();
 
   public timing = TimingRule.INSTANT;
+  public isSpellAbility = false;
   public condition = null as Condition | null;
   public label = 'Do Ability';
 
-  constructor(public cardId: string, public costs: Cost[], public effects: Effect[], public type = AbilityType.ACTIVATED, public validZones = [ZoneType.battlefield]) {}
+  constructor(public cardId: string, public costs: Cost[], public effects: Effect[], public type = AbilityType.ACTIVATED, public validZones = [ZoneType.battlefield]) {
+    // Follow card as it changes zones
+    cardIdSubject.subscribe(({ newId, oldId }) => {
+      if (oldId !== this.cardId) return;
+      this.cardId = newId;
+    });
+  }
 
   public getCardState() {
     const { getCardById } = useGameItems();
@@ -87,12 +95,14 @@ export abstract class Ability {
   abstract ability(): Promise<void>;
 
   async do(fromStack = false): Promise<void> {
-    console.log('Doing Ability');
     const { addToStack } = useStack();
 
     if (doesNotUseTheStack.includes(this.type) || fromStack) {
       this.ability();
     } else {
+      if (!(await this.canPayCosts())) return;
+
+      await this.payAllCosts();
       setTimeout(() => {
         addToStack({ id: this.id, type: 'ABILITY' }, this);
       }, 100);

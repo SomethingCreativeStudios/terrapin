@@ -7,14 +7,17 @@ import { BaseCard } from '~/cards/models/base.card';
 import { Effect, EffectType } from '~/cards/models/effects/effect';
 import { EventType } from '~/cards/models/game-event';
 import { ContinuousEffect } from '~/cards/models/effects/continuous-effect.effect';
-import { Duration } from '~/cards/models/other-constants';
+import { Duration, durationToEventMap } from '~/cards/models/other-constants';
 import { AsThoughEffect } from '~/cards/models/effects/as-though.effect';
 import { useZone } from './useZone';
+import { DelayedTriggeredAbility } from '~abilities';
+import { cardIdSubject } from '~/subjects';
 
 const state = reactive({
   cardMap: {} as Record<string, CardState>,
   abilityMap: {} as Record<string, Ability>,
   globalEffects: [] as Effect[],
+  delayedAbilities: [] as DelayedTriggeredAbility[],
 });
 
 // @ts-ignore
@@ -45,6 +48,8 @@ function resetCardId(currentId: string) {
 
   state.cardMap[current.baseCard.cardId] = current;
   swapCardId(currentId, current.baseCard.cardId);
+
+  cardIdSubject.next({ newId: current.baseCard.cardId, oldId: currentId });
 
   return current.baseCard.cardId;
 }
@@ -89,6 +94,10 @@ function addGlobalEffect(effect: Effect) {
   state.globalEffects.push(effect);
 }
 
+function addDelayedTriggerAbility(ability: DelayedTriggeredAbility) {
+  state.delayedAbilities.push(ability);
+}
+
 function markEffectAsDeleted(id: string) {
   state.globalEffects.forEach((effect) => {
     if (effect.id === id) {
@@ -97,25 +106,31 @@ function markEffectAsDeleted(id: string) {
   });
 }
 
-function proccessDuration(type: EventType) {
+async function processDuration(type: EventType) {
   const hasDuration = (effect: Effect | ContinuousEffect): effect is ContinuousEffect => {
     return (effect as ContinuousEffect).duration !== undefined;
   };
 
-  (state.globalEffects as Effect[]).forEach((effect) => {
+  const globalEffects = state.globalEffects as Effect[];
+  const delayedAbilities = [...(state.delayedAbilities as DelayedTriggeredAbility[])];
+
+  for await (const effect of globalEffects) {
     if (effect.effectType === EffectType.ONE_SHOT) return;
 
-    if (hasDuration(effect)) {
-      switch (effect.duration) {
-        case Duration.END_OF_TURN:
-          effect.canBeDeleted = type === EventType.END_TURN_STEP_PRE;
-          break;
+    if (hasDuration(effect) && !effect.canBeDeleted) {
+      effect.canBeDeleted = durationToEventMap[effect.duration] === type;
+    }
+  }
 
-        default:
-          break;
+  for await (const ability of delayedAbilities) {
+    if (ability.meetsGameEvent(type)) {
+      await ability.do();
+
+      if (ability.getDuration() === Duration.ONE_USE) {
+        state.delayedAbilities = state.delayedAbilities.filter((delayed) => delayed.id !== ability.id);
       }
     }
-  });
+  }
 }
 
 function getAllAsThoughEffects() {
@@ -141,8 +156,9 @@ export function useGameItems() {
     getGlobalEffects,
     addGlobalEffect,
     markEffectAsDeleted,
-    proccessDuration,
+    processDuration,
     getAllAsThoughEffects,
     resetCardId,
+    addDelayedTriggerAbility,
   };
 }

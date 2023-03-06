@@ -81,9 +81,9 @@ export class StackCollection {
     } else {
       const cardState = getCardById(id);
 
-      for await (const ability of cardState.value.cardClass.abilities) {
+      for await (const ability of cardState.value.cardClass.spellAbility) {
         if (await ability.canDo()) {
-          await ability.do();
+          await ability.do(true);
         }
       }
 

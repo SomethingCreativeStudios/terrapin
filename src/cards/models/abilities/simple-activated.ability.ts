@@ -4,8 +4,8 @@ import { Effect } from '../effects/effect';
 import { ActivatedAbility } from './activated.ability';
 
 export class SimpleActivatedAbility extends ActivatedAbility {
-  constructor(cardId: string, effects: Effect[], costs: Cost[], label: string) {
-    super(cardId, costs, effects, [ZoneType.battlefield]);
+  constructor(cardId: string, effects: Effect[], costs: Cost[], label: string, zones: ZoneType[] = [ZoneType.battlefield]) {
+    super(cardId, costs, effects, zones);
 
     this.label = label;
   }

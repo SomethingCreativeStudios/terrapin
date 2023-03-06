@@ -1,9 +1,10 @@
-import { useGameItems, useZone } from '~/composables';
+import { useZone, useGameItems } from '~/composables';
 import { ZoneType } from '~/models/zone.model';
-import { Conditional } from './conditional';
+import { Ability } from '../../abilities';
+import { Condition } from '../condition';
 
-export class MetalcraftConditional implements Conditional {
-  canMeet(): boolean {
+export class MetalcraftCondition extends Condition {
+  public async meets(source: Ability): Promise<boolean> {
     const { getZones } = useZone();
     const { getCardById } = useGameItems();
     const battlefield = getZones().value[ZoneType.battlefield];

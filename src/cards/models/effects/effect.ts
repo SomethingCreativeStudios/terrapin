@@ -1,10 +1,9 @@
 import { v4 as uuid } from 'uuid';
-import { CardState, Card } from '~/models/card.model';
+import { CardState } from '~/models/card.model';
 import { useGameItems } from '~/composables';
 import { Condition } from '../condition/condition';
 import { Ability } from '../abilities/ability';
-
-const { getCardById } = useGameItems();
+import { cardIdSubject } from '~/subjects';
 
 export abstract class Effect {
   public id = uuid();
@@ -14,7 +13,13 @@ export abstract class Effect {
   public effectType = EffectType.ONE_SHOT;
   public canBeDeleted = false;
 
-  constructor(private cardId: string, public condition?: Condition) {}
+  constructor(public cardId: string, public condition?: Condition) {
+    // Follow card as it changes zones
+    cardIdSubject.subscribe(({ newId, oldId }) => {
+      if (oldId !== this.cardId) return;
+      this.updateCardId(newId);
+    });
+  }
 
   public getCardState() {
     const { getCardById } = useGameItems();
@@ -28,6 +33,10 @@ export abstract class Effect {
 
   protected async meetsCondition(source: Ability) {
     return (await this.condition?.meets(source)) ?? true;
+  }
+
+  protected updateCardId(cardId: string) {
+    this.cardId = cardId;
   }
 
   async do(meta?: any) {

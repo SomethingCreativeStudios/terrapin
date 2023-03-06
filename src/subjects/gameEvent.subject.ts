@@ -15,7 +15,7 @@ export interface GameEvent {
 const eventSubject = new Subject<{ type: EventType; sourceId: string; sourceZone: ZoneType }>();
 
 eventSubject.subscribe(async ({ sourceId, type, sourceZone }: GameEvent) => {
-  const { getAllCards, proccessDuration, cleanUpEffects } = useGameItems();
+  const { getAllCards, processDuration, cleanUpEffects } = useGameItems();
   const allCards = getAllCards().value;
 
   for await (const cardState of allCards) {
@@ -26,7 +26,7 @@ eventSubject.subscribe(async ({ sourceId, type, sourceZone }: GameEvent) => {
     }
   }
 
-  proccessDuration(type);
+  await processDuration(type);
   cleanUpEffects();
 });
 

@@ -1,7 +1,5 @@
 import { Card } from '~/models/card.model';
 import { Ability } from './abilities/ability';
-import { CastingCost } from './casting-cost/casting-cost';
-import { CardCost, CardEffect } from './effect';
 
 export interface BaseCardID {
   UUID: string;
@@ -10,7 +8,7 @@ export abstract class BaseCard {
   public static UUID: string;
 
   public abilities = [] as Ability[];
-  public castingCosts = [] as CastingCost[];
+  public spellAbility = [] as Ability[];
 
   constructor(card: Card) {}
 }
